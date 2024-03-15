@@ -3,6 +3,7 @@ const { getUser, userRegister, userLogin, updateUser, deletUser, isAdmin, getAll
 const { getToken } = require("../../utils/jwtToken");
 const { addCart, getCart, deletCart } = require("../../controllers/cartController");
 const verifyToken = require("../../middlewear/auth");
+const { getProduct } = require("../../controllers/productControler");
 const routes = express.Router();
 
 
@@ -12,6 +13,7 @@ routes.route("/userDetails").get(verifyToken,getUser).post(verifyToken,updateUse
 routes.route("/product/addCart").post(verifyToken,addCart)
 routes.route("/user/carts").get(verifyToken,getCart)
 routes.route("/user/carts/delete").delete(verifyToken,deletCart)
+routes.route("/product/:id").get(getProduct)
 
 // routes.route("/login").get(verifyToken,isSeller);
 
@@ -21,6 +23,6 @@ routes.route("/user/carts/delete").delete(verifyToken,deletCart)
 
 routes.route("/users").get(verifyToken,isAdmin, getAllusers);
 routes.route("/sellers").get(verifyToken,isAdmin, getAllSellers);
-routes.route("/products").get(verifyToken,isAdmin, getAllProducts);
+routes.route("/products").get( getAllProducts);
 
 module.exports = routes

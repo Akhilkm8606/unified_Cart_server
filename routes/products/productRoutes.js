@@ -7,7 +7,7 @@ const verifyToken = require("../../middlewear/auth");
 const routes = express.Router();
 
 // Define routes
-routes.route("/seller/:seller_Id/product").post(upload.single("image"), verifyToken, addProduct);
+routes.route("/seller/product").post(upload.array("image"), verifyToken, addProduct);
 routes.route("/product/list").get(verifyToken, getProduct);
 routes.post("/category", verifyToken, addCategory);
 routes.get("/categorys", verifyToken,getCategory );

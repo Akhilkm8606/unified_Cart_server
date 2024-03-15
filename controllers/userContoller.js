@@ -277,8 +277,9 @@ exports.getAllSellers = async (req, res) => {
 
 exports.getAllProducts = async (req,res) =>{
     try {
+        const resultPerPage = 5;
         const products = await Product.find();
-        if (!products) {
+                if (!products) {
             res.status(404).json(
                 { success: false, 
                 message: "nof found",

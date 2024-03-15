@@ -16,9 +16,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    brand: {
-        type: String 
-    },
+    
     description: {
         type: String
     },
@@ -37,6 +35,7 @@ const productSchema = new mongoose.Schema({
     features: {
         type: [String] 
     },
+    
 }, { timestamps: true });
 
 

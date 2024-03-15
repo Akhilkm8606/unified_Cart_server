@@ -50,7 +50,9 @@ exports.getCategory = async (req, res) => {
     try {
         const categorys = await Category.find();
         
-        res.status(200).json({ success: true, categorys });
+        res.status(200).json({ success: true, categorys
+        ,
+    count: categorys.length });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Internal server error" });
@@ -72,11 +74,11 @@ exports.updateCategory = async (req, res) => {
 exports.addProduct = async (req, res) => {
     try {
         const sellerId = req.userId;
-        const image = req.file.filename;
+        const image = req.files.map(file => file.filename);
 
-        const { name, categoryId, price, brand, description, quantity, features,images } = req.body;
+        const { name, categoryId, price, description, quantity, features,images } = req.body;
 
-        if (!name || !categoryId || !price || !brand || !description || !quantity || !features || !image) {
+        if (!name || !categoryId || !price  || !description || !quantity || !features || !image) {
             return res.status(400).json({
                 success: false,
                 message: "All fields including image are required"
@@ -88,9 +90,9 @@ exports.addProduct = async (req, res) => {
             name,
             categoryId,
             price,
-            brand,
+          
             features,
-            // images: image
+            images: image
         });
 
         if (existingProduct) {
@@ -105,7 +107,7 @@ exports.addProduct = async (req, res) => {
             name,
             categoryId,
             price,
-            brand,
+         
             description,
             quantity,
             features,
@@ -127,15 +129,16 @@ exports.addProduct = async (req, res) => {
 
 
 exports.getProduct = async (req, res) => {
-    const userId = req.userId;
+    
+    const productId = req.params.id;
     try {
-        const products = await Product.find({ sellerId: userId });
-        if (products.length === 0) {
-            return res.status(404).json({ success: false, message: " products list found " });
+        // Find the product by its ID and seller ID
+        const product = await Product.findOne({ _id: productId });
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
         }
-        
-        console.log(products);
-        res.status(200).json({ success: true, products });
+        console.log(product);
+        res.status(200).json({ success: true, product });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Internal server error" });
