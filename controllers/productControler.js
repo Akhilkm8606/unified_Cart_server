@@ -76,9 +76,9 @@ exports.addProduct = async (req, res) => {
         const sellerId = req.userId;
         const image = req.files.map(file => file.filename);
 
-        const { name, categoryId, price, description, quantity, features,images } = req.body;
+        const { name, categoryId, price, description,rating,review, quantity, features,images } = req.body;
 
-        if (!name || !categoryId || !price  || !description || !quantity || !features || !image) {
+        if (!name || !categoryId || !price  || !description ||!rating ||!review  || !quantity || !features || !image) {
             return res.status(400).json({
                 success: false,
                 message: "All fields including image are required"
@@ -90,7 +90,8 @@ exports.addProduct = async (req, res) => {
             name,
             categoryId,
             price,
-          
+            rating,
+            review,
             features,
             images: image
         });
@@ -107,7 +108,8 @@ exports.addProduct = async (req, res) => {
             name,
             categoryId,
             price,
-         
+            rating,
+            review,
             description,
             quantity,
             features,
@@ -144,7 +146,6 @@ exports.getProduct = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
-
 
 
 

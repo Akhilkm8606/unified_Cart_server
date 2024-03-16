@@ -8,6 +8,10 @@ const cartSchema = mongoose.Schema({
     productId:{
         type:String,
         required:[true,"please add the productid"]
+    },
+    quantity:{
+        type: Number,
+        default: 1,
     }
 })
 const Cart = mongoose.model("Cart", cartSchema);

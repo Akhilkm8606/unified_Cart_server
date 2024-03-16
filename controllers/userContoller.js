@@ -271,30 +271,66 @@ exports.getAllSellers = async (req, res) => {
          res.status(500).json({
             success: false,
             message: "Internal server error"
+            
         });
     }
 }
 
-exports.getAllProducts = async (req,res) =>{
-    try {
-        const resultPerPage = 5;
-        const products = await Product.find();
-                if (!products) {
-            res.status(404).json(
-                { success: false, 
-                message: "nof found",
-                 });
+// exports.getAllProducts = async (req,res) =>{
+//     try {
+//         const resultPerPage = 5;
+//         const products = await Product.find();
+//                 if (!products) {
+//             res.status(404).json(
+//                 { success: false, 
+//                 message: "nof found",
+//                  });
             
-        }
-        res.status(200).json(
-            { success: true, 
-                count: products.length,
-            message: "all products list",
-            products });
+//         }
+//         res.status(200).json(
+//             { success: true, 
+//                 count: products.length,
+//             message: "all products list",
+//             products });
        
     
-    } catch (error) {
+//     } catch (error) {
         
-    }
+//     }
 
-}
+// }
+exports.getAllProducts = async (req, res) => {
+    try {
+        const resultPerPage = 5;
+        let query = {};
+
+        // Check if keyword exists in the query string
+        const { keyword } = req.query;
+        if (keyword) {
+            query = {
+                $or: [
+                    { name: { $regex: keyword, $options: 'i' } }, // Case-insensitive search for product name
+                    { description: { $regex: keyword, $options: 'i' } }, // Case-insensitive search for product description
+                    // Add more fields to search here if needed
+                ]
+            };
+        }
+
+        // Fetch all products if no search keyword is provided
+        const products = keyword ? await Product.find(query) : await Product.find();
+
+        if (!products || products.length === 0) {
+            return res.status(404).json({ success: false, message: "No products found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            message: "All products list",
+            products
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};

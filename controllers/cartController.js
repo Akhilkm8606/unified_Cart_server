@@ -3,50 +3,61 @@
 
 
  exports.addCart = async (req, res) => {
-     const userId = req.userId;
-     const { productId } = req.body;
-     try {
-         if (!productId) {
-             return res.status(400).json({
-                 success: false,
-                 message: "Please provide productId"
-             });
-         }
- 
-         const existingCart = await Cart.findOne({ userId, productId });
-         if (existingCart) {
-             return res.status(400).json({
-                 success: false,
-                 message: "Product already in the cart"
-             });
-         }
- 
-         const cart = await Cart.create({
-             userId,
-             productId
-         });
- 
-         res.status(200).json({
-             success: true,
-             message: "Cart added successfully",
-             cart
-         });
- 
-     } catch (error) {
-         console.log(error);
-         res.status(400).json({
-             success: false,
-             message: error.message
-         });
-     }
- };
- 
+    const userId = req.userId;
+    const { id: productId } = req.params;
+    const { quantity } = req.body;
+    
+    try {
+        if (!productId) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide productId"
+            });
+        }
+
+        let existingCart = await Cart.findOne({ userId, productId });
+
+        if (existingCart) {
+            // Product already in the cart, update quantity
+            existingCart.quantity += parseInt(quantity || 1);
+            await existingCart.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Cart updated successfully",
+                cart: existingCart
+            });
+        } else {
+            
+            // Product not in cart, create new entry
+            const cart = await Cart.create({
+                userId,
+                productId,
+                quantity: parseInt(quantity || 1)
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Cart added successfully",
+                cart
+            });
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 
 
  exports.getCart = async (req, res) => {
     const userId = req.userId;
     try {
-        const userCart = await Cart.findOne({ userId });
+        const userCart = await Cart.find({ userId });
         if (!userCart) {
             return res.status(404).json({
                 success: false,
@@ -69,7 +80,7 @@
 };
 
 exports.deletCart = async (req, res) => {
-    const {cartId} = req.body
+    const {id: cartId} = req.params
     try {
         const deletedCart = await Cart.findByIdAndDelete(cartId);
         if (!deletedCart) {
