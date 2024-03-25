@@ -3,20 +3,16 @@ const Order = require('../model/order');
 // Create a new order
 exports.createOrder = async (req, res) => {
     try {
-        const { userId, products, totalPrice, status } = req.body;
+        const { user, items, totalPrice, status, shippingAddress, paymentMethod } = req.body;
 
-        const order = new Order({
-            userId,
-            products,
-            totalPrice,
-            status
-        });
+        const order = new Order({ user, items, totalPrice, status, shippingAddress, paymentMethod });
 
         await order.save();
 
         res.status(201).json({ success: true, order });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+        console.log(error);
     }
 };
 
@@ -69,3 +65,4 @@ exports.deleteOrderById = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+

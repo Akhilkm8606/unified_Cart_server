@@ -1,6 +1,8 @@
 const { getToken } = require('../utils/jwtToken');
 const User = require('../model/user');
 const Product = require('../model/product');
+const Category = require("../model/categoryModel");
+
 
 
 const { hashpass, passwordIsMatch } = require('../utils/password');
@@ -41,6 +43,7 @@ exports.userRegister = async (req, res) => {
                 success: false,
                 message: "User registration failed"
             });
+            
         }
 
         res.status(201).json({
@@ -306,18 +309,37 @@ exports.getAllProducts = async (req, res) => {
 
         // Check if keyword exists in the query string
         const { keyword } = req.query;
+
         if (keyword) {
-            query = {
+            const productQuery = {
                 $or: [
                     { name: { $regex: keyword, $options: 'i' } }, // Case-insensitive search for product name
-                    { description: { $regex: keyword, $options: 'i' } }, // Case-insensitive search for product description
+                    { description: { $regex: keyword, $options: 'i' } } // Case-insensitive search for product description
                     // Add more fields to search here if needed
                 ]
             };
+
+            const categoryQuery = {
+                name: { $regex: keyword, $options: 'i' } // Case-insensitive search for category name
+            };
+
+            // Fetch products and categories based on the keyword
+            const products = await Product.find(productQuery);
+            const categories = await Category.find(categoryQuery);
+
+            if ((!products || products.length === 0) && (!categories || categories.length === 0)) {
+                return res.status(404).json({ success: false, message: "No products or categories found" });
+            }
+
+            return res.status(200).json({
+                success: true,
+                products,
+                categories
+            });
         }
 
-        // Fetch all products if no search keyword is provided
-        const products = keyword ? await Product.find(query) : await Product.find();
+        // If no keyword is provided, fetch all products
+        const products = await Product.find();
 
         if (!products || products.length === 0) {
             return res.status(404).json({ success: false, message: "No products found" });
@@ -334,3 +356,4 @@ exports.getAllProducts = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+

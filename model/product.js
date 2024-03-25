@@ -1,4 +1,12 @@
 const mongoose = require("mongoose");
+const reviewSchema = new mongoose.Schema({
+    username: String,
+    avatar: String,
+    rating: Number,
+    comment: String,
+  }, { timestamps: true });
+  
+  const Review = mongoose.model('Review', reviewSchema);
 
 const productSchema = new mongoose.Schema({
     sellerId: {
@@ -16,12 +24,12 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    rating :{
-        type: Number
-    },
-    review:{
-        type: String
-    },
+    
+      reviews: [reviewSchema],
+      description: {
+        type: String,
+      },
+
     
     description: {
         type: String

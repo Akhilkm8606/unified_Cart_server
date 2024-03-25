@@ -71,17 +71,41 @@ exports.updateCategory = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+exports.addReview = async (req, res) => {
+    const reviewData = req.body;
+    const productId = req.params.id;
+    
+    try {
+        // Find the product by its ID
+        const product = await Product.findById(productId);
+        
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+        
+        // Add the review to the product's reviews array
+        product.reviews.push(reviewData);
+        
+        // Save the updated product with the new review
+        await product.save();
+        
+        res.status(200).json({ success: true, message: "Review added successfully", product });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
 exports.addProduct = async (req, res) => {
     try {
         const sellerId = req.userId;
         const image = req.files.map(file => file.filename);
 
-        const { name, categoryId, price, description,rating,review, quantity, features,images } = req.body;
+        const { name, categoryId, price, description, quantity, features, images, reviews } = req.body;
 
-        if (!name || !categoryId || !price  || !description ||!rating ||!review  || !quantity || !features || !image) {
+        if (!name || !categoryId || !price || !description || !quantity || !features || !image ) {
             return res.status(400).json({
                 success: false,
-                message: "All fields including image are required"
+                message: "All fields including image and reviews are required"
             });
         }
 
@@ -90,10 +114,10 @@ exports.addProduct = async (req, res) => {
             name,
             categoryId,
             price,
-            rating,
-            review,
             features,
-            images: image
+            images: image,
+
+
         });
 
         if (existingProduct) {
@@ -108,17 +132,18 @@ exports.addProduct = async (req, res) => {
             name,
             categoryId,
             price,
-            rating,
-            review,
             description,
             quantity,
             features,
-            images: image
+            images: image,
+            reviews: reviews,
+            // Add reviews data here
         });
 
         res.status(200).json({
             success: true,
-            message: "Product added successfully"
+            message: "Product added successfully",
+
         });
 
     } catch (error) {
@@ -160,3 +185,7 @@ exports.updateProduct = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+
+
+
