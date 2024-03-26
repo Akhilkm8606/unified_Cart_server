@@ -1,4 +1,6 @@
 const express = require("express");
+const Razorpay = require("razorpay");
+
 const app = express();
 
 const dotenv = require('dotenv')
@@ -14,6 +16,7 @@ const orderRoute = require("./routes/order/orderRoutes");
 dotenv.config({path: path.resolve(__dirname, 'confiq', 'confiq.env')});
 app.use(cookieparser())
 app.use('/uploads', express.static('uploads'));
+
 
 app.use(cors({
     credentials: true,

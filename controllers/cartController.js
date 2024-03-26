@@ -1,8 +1,6 @@
 
 const Cart = require('../model/cart');
 const Product = require('../model/product');
-
-
 exports.addCart = async (req, res) => {
     const userId = req.userId;
     const { id: productId } = req.params;
@@ -19,8 +17,9 @@ exports.addCart = async (req, res) => {
         // Find existing cart item
         let existingCart = await Cart.findOne({ userId: userId, productId });
         if (existingCart) {
-            // Product already in the cart, update quantity
+            // Product already in the cart, update quantity and amount
             existingCart.quantity += parseInt(quantity || 1);
+            existingCart.amount = existingCart.quantity * existingCart.price; // Recalculate amount based on updated quantity
             await existingCart.save();
 
             return res.status(200).json({
@@ -93,8 +92,7 @@ exports.addCart = async (req, res) => {
 // Controller
 exports.editCart = async (req, res) => {
     const { id: cartId } = req.params;
-    const { quantity: newQuantity} = req.body;
-
+    const { quantity: newQuantity } = req.body;
 
     try {
         const existingCart = await Cart.findById(cartId);
@@ -108,19 +106,24 @@ exports.editCart = async (req, res) => {
 
         // Calculate the new quantity by adding the current quantity and the new quantity
         const currentQuantity = existingCart.quantity || 0;
-        const editCart = await Cart.findByIdAndUpdate(cartId, { quantity: newQuantity }, { new: true });
-        console.log(newQuantity,'lll');
-        if (!editCart) {
+        const difference = newQuantity - currentQuantity;
+        const updatedCart = await Cart.findByIdAndUpdate(cartId, { quantity: newQuantity }, { new: true });
+
+        if (!updatedCart) {
             return res.status(404).json({
                 success: false,
                 message: 'Cart not found'
             });
         }
-        console.log(editCart);
+
+        // Calculate the new total amount
+        updatedCart.amount += difference * updatedCart.price;
+        await updatedCart.save();
+
         res.status(200).json({
             success: true,
             message: 'Cart updated successfully',
-            data: editCart
+            data: updatedCart
         });
     } catch (error) {
         console.error(error.message);
