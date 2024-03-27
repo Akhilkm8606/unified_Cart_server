@@ -63,7 +63,9 @@ exports.paymentVerification = async (req, res) => {
             .digest('hex');
 
         if (razorpay_signature === expectedSignature) {
-            // await Payment.create
+            await Payment.create({
+                razorpay_payment_id, razorpay_order_id, razorpay_signature
+            })
             res.redirect(`http://localhost:3000/PaymentSuccess?refernce=${razorpay_payment_id}`);
         } else {
             res.status(400).json({ success: false, message: "Payment verification failed" });
