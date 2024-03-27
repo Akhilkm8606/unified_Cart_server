@@ -1,14 +1,14 @@
 const Order = require('../model/order');
 const Razorpay = require("razorpay");
-
+const crypto = require('crypto');
+const Payment = require('../model/payment');
 
 const instance = new Razorpay({
-    key_id: 'rzp_test_2nSteRcuNvqKdr',
-    key_secret: 'WI3twOneiNU0TlUxQ2FUVstg'
+    key_id: 'rzp_test_UWrwYMcZFBkSYy',
+    key_secret: 'XbtrcRjsbb8ZpiojCHQrMBYo'
 });
 
 // Create a new order
-console.log(instance,'ll');
 exports.createOrder = async (req, res) => {
     try {
         const { user, items, totalPrice, status, shippingAddress, paymentMethod } = req.body;
@@ -24,18 +24,57 @@ exports.createOrder = async (req, res) => {
 // Checkout
 exports.checkout = async (req, res) => {
     try {
+        const orderId = req.params.id;
+        const order = await Order.findById(orderId);
+        console.log(order.totalPrice);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
         const options = {
-            amount: Order.totalPrice, // Example amount, replace with actual amount
+         
+            amount: order.totalPrice * 100, // Example amount, replace with actual amount
             currency: "INR",
-            receipt: "receipt#1"
+            receipt: order._id
         };
-        const razorpayOrder = await instance.orders.create(options);
-        res.status(201).json({ success: true, razorpayOrder });
+
+        instance.orders.create(options, (err, razorpayOrder) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
+            }
+            res.status(201).json({ success: true, razorpayOrder });
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
         console.log(error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
+
+exports.paymentVerification = async (req, res) => {
+    try {
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+        
+        const payload = `${razorpay_order_id}|${razorpay_payment_id}`;
+
+        const expectedSignature = crypto.createHmac('sha256', instance.key_secret)
+            .update(payload)
+            .digest('hex');
+
+        if (razorpay_signature === expectedSignature) {
+            // await Payment.create
+            res.redirect(`http://localhost:3000/PaymentSuccess?refernce=${razorpay_payment_id}`);
+        } else {
+            res.status(400).json({ success: false, message: "Payment verification failed" });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
 
 // Get all orders
 exports.getAllOrders = async (req, res) => {
