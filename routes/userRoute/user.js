@@ -5,7 +5,7 @@ const { addCart, getCart, deletCart, editCart } = require("../../controllers/car
 const verifyToken = require("../../middlewear/auth");
 const upload = require('../../middlewear/fileUplod'); // Correct import path
 
-const { getProduct, addProduct,  addReview } = require("../../controllers/productControler");
+const { getProduct, addProduct,  addReview, getReview, deleteReview } = require("../../controllers/productControler");
 const routes = express.Router();
 
 
@@ -19,7 +19,9 @@ routes.route("/user/cart/edit/:id").put(verifyToken,editCart)
 routes.route("/user/cart/delete/:id").delete(verifyToken,deletCart)
 routes.route("/product/:id").get(getProduct)
 routes.route("/addproduct").post(upload.array("image"), verifyToken, addProduct);
-routes.route("/addreview/:id").post(upload.array("image"), verifyToken, addReview);
+routes.route("/addreview/:id").post( verifyToken, addReview);
+routes.route("/getReview/:id").get( verifyToken, getReview);
+routes.route("/deletereview/:id").delete( verifyToken, deleteReview);
 
 
 // routes.route("/login").get(verifyToken,isSeller);

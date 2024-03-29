@@ -4,6 +4,7 @@ const Product = require("../model/product");
 const Category = require("../model/categoryModel");
 const slugify = require ("slugify")
 const upload = require("../middlewear/fileUplod");
+const User = require("../model/user");
 
 
 exports.addCategory = async (req, res) => {
@@ -72,29 +73,75 @@ exports.updateCategory = async (req, res) => {
     }
 };
 exports.addReview = async (req, res) => {
-    const reviewData = req.body;
-    const productId = req.params.id;
-    
     try {
-        // Find the product by its ID
+        const userId = req.userId;
+        const reviewData = req.body;
+        const productId = req.params.id;
+
         const product = await Product.findById(productId);
-        
+        const user = await User.findById(userId);
+
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
-        
-        // Add the review to the product's reviews array
-        product.reviews.push(reviewData);
-        
-        // Save the updated product with the new review
+
+        const review = {
+            ...reviewData,
+            username: user.username
+        };
+
+        product.reviews.push(review);
         await product.save();
-        
+
         res.status(200).json({ success: true, message: "Review added successfully", product });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+exports.getReview = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+        const reviews = product.reviews;
+        console.log(reviews);
+        res.status(200).json({ success: true, message: "Review added successfully", reviews });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+exports.deleteReview = async (req, res) => {
+    try {
+        const reviewId = req.params.id;
+        
+        // Find the product by its ID
+        const product = await Product.findOneAndUpdate(
+            { "reviews._id": reviewId }, // Find the product containing the review with the given ID
+            { $pull: { reviews: { _id: reviewId } } }, // Remove the review from the product's reviews array
+            { new: true } // Return the updated product
+        );
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Review not found" });
+        }
+
+        // If the review was successfully deleted from the product, return the updated product
+        res.status(200).json({ success: true, message: "Review deleted successfully", product });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
+
 exports.addProduct = async (req, res) => {
     try {
         const sellerId = req.userId;
