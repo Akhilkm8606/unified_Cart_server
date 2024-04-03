@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const reviewSchema = new mongoose.Schema({
     username: String,
     avatar: String,
-    rating: Number,
+    rating:  Number,
+ 
     comment: String,
   }, { timestamps: true });
   
@@ -30,7 +31,9 @@ const productSchema = new mongoose.Schema({
         type: String,
       },
 
-    
+    rating:{
+        type: Number,
+    },
     description: {
         type: String
     },

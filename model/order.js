@@ -46,6 +46,15 @@ const orderSchema = new mongoose.Schema({
     LandMark:{type :String},
     State: { type: String },
     ZipCode: { type: String }
+
+},
+paymentId:{
+    type: String,
+},
+paymentStatus: {
+    type: String,
+    enum: ['Pending', 'paid', 'failed',],
+    default: 'Pending'
 },
     paymentMethod: {
         type: String,

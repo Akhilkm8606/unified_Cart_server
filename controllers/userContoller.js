@@ -7,9 +7,7 @@ const Category = require("../model/categoryModel");
 
 const { hashpass, passwordIsMatch } = require('../utils/password');
 
-exports.getUser = async (req, res) => {
-    res.send("this is my page");
-};
+
 
 exports.userRegister = async (req, res) => {
     const { username, email, phone, address, password, confirmPassword } = req.body;
@@ -70,6 +68,7 @@ exports.userLogin = async (req, res,next) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
+        console.log();
        
         if (!user) {
             return res.status(400).json({
@@ -130,13 +129,13 @@ exports.getUser = async (req,res) =>{
 
 }
 exports.updateUser = async (req,res) =>{
-    const userId = req.userId;
+    const userId = req.params.id
     
    
- const { name } = req.body;
+ const { name,email,phone } = req.body;
 
     try {
-        const user = await User.findByIdAndUpdate(userId)
+        const user = await User.findById(userId)
        
         if (!user) {
             console.log(error);
@@ -147,10 +146,19 @@ exports.updateUser = async (req,res) =>{
         }
 
 
-        user.username=name;
+        if (name) {
+            user.username = name;
+        }
+        if (email) {
+            user.email = email;
+        }
+        if (phone) {
+            user.phone = phone;
+        }
+
  
         await user.save()
-        console.log(user);
+       
         return res.status(200).json({
             success: true,
             message:"user details updated successfully!",

@@ -11,7 +11,9 @@ const routes = express.Router();
 
 routes.route("/user").post(userRegister);
 routes.route("/login").post(userLogin,getToken);
-routes.route("/userDetails").get(verifyToken,getUser).post(verifyToken,updateUser).delete(verifyToken,deletUser)
+routes.route("/userDetails").get(verifyToken,getUser)
+routes.route("/updateUser/:id").post(verifyToken,updateUser).delete(verifyToken,deletUser)
+
 routes.route("/product/addCart/:id").post(verifyToken, addCart);
 
 routes.route("/user/carts/:id").get(verifyToken,getCart)
