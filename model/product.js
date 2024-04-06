@@ -1,41 +1,38 @@
 const mongoose = require("mongoose");
+
 const reviewSchema = new mongoose.Schema({
     username: String,
     avatar: String,
     rating:  Number,
- 
     comment: String,
-  }, { timestamps: true });
-  
-  const Review = mongoose.model('Review', reviewSchema);
+}, { timestamps: true });
+
+const Review = mongoose.model('Review', reviewSchema);
 
 const productSchema = new mongoose.Schema({
-    sellerId: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Seller',
+        ref: 'user',
         required: true
     },
-   
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'category',
+        ref: 'Category',
         required: true
+    },
+    category: {
+        type: String,
     },
     name: {
         type: String,
         required: true
     },
-    
-      reviews: [reviewSchema],
-      description: {
-        type: String,
-      },
-
-    rating:{
-        type: Number,
-    },
+    reviews: [reviewSchema],
     description: {
         type: String
+    },
+    rating: {
+        type: Number
     },
     price: {
         type: Number,
@@ -43,18 +40,17 @@ const productSchema = new mongoose.Schema({
     },
     quantity: {
         type: Number,
-        default: 0
-    },  
-    images: {
-        type: [String], 
-      
-    }, 
-    features: {
-        type: [String] 
+        default: 0,
+        required: true
     },
-    
+    images: {
+        type: [String]
+    },
+    features: {
+        type: [String]
+    }
 }, { timestamps: true });
 
-
 const Product = mongoose.model("Product", productSchema);
+
 module.exports = Product;

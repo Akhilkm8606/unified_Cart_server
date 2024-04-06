@@ -1,11 +1,12 @@
 const express = require("express");
 const verifyToken = require("../../middlewear/auth");
 const { createOrder, getAllOrders, getOrderById, updateOrderStatus, deleteOrderById, paymentVerification,  } = require("../../controllers/order");
+const { isAdmin } = require("../../controllers/userContoller");
 
 
 const routes = express.Router();
 routes.route("/orders").post(verifyToken,createOrder)
-routes.route("/all_orders").get(verifyToken,getAllOrders)
+routes.route("/all_orders").get(verifyToken,isAdmin,getAllOrders)
 routes.route("/orderlist/:id").get(verifyToken,getOrderById)
 routes.route("/orders/:id").post(updateOrderStatus)
 routes.route("/orders/:id").delete(deleteOrderById)

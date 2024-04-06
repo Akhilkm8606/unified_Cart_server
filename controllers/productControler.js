@@ -5,6 +5,8 @@ const Category = require("../model/categoryModel");
 const slugify = require("slugify")
 const upload = require("../middlewear/fileUplod");
 const User = require("../model/user");
+const Cart = require('../model/cart');
+
 
 
 exports.addCategory = async (req, res) => {
@@ -47,6 +49,7 @@ exports.addCategory = async (req, res) => {
 
 };
 exports.getCategory = async (req, res) => {
+    
 
     try {
         const categorys = await Category.find();
@@ -62,12 +65,14 @@ exports.getCategory = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+
 exports.updateCategory = async (req, res) => {
 
     const { category } = req.body
     const { id } = req.params
     try {
-        const categorys = await Category.findByIdAndUpdate(id, { category, slug: slugify(category) }, { new: true });
+        const categorys = await Category.findByIdAndUpdate(id, { name:category, slug: slugify(category) }, { new: true });
 
         res.status(200).json({ success: true, categorys });
     } catch (error) {
@@ -75,6 +80,36 @@ exports.updateCategory = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+
+exports.deletCategory = async (req, res) => {
+    try {
+        const cateId = req.params.id;
+        console.log(cateId);
+        const deletedCate = await Category.findByIdAndDelete(cateId);
+        if (!deletedCate) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Cart deleted successfully"
+        });
+        
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+        
+    }
+
+
+}
 exports.addReview = async (req, res) => {
     try {
         const userId = req.userId;
@@ -160,29 +195,41 @@ exports.deleteReview = async (req, res) => {
 
 exports.addProduct = async (req, res) => {
     try {
-        const sellerId = req.userId;
-        const images = req.files.map(file => file.filename);
+        const userId = req.params.id;
+      
+        const image = req.files.map(file => file.filename);
+
+        console.log(image);
         const { name, categoryId, price, description, quantity, features ,reviews} = req.body;
+      
      
 
-        if (!name || !categoryId || !price || !description || !quantity || !features || !images ) {
+        if (!name || !categoryId || !price || !description || !quantity || !features || !image ) {
             return res.status(400).json({
                 success: false,
                 message: "All fields including images and reviews are required"
             });
         }
 
+
         // Calculate the overall rating
        // Filter out reviews without a valid rating
 
-
+       const category = await Category.findById(categoryId);
+       if (!category) {
+           return res.status(404).json({
+               success: false,
+               message: "Category not found"
+           });
+       }
         const existingProduct = await Product.findOne({
-            sellerId,
+            userId,
             name,
             categoryId,
+            category:category.name,
             price,
             features,
-            images: images,
+            images: image,
         });
 
         if (existingProduct) {
@@ -193,14 +240,15 @@ exports.addProduct = async (req, res) => {
         }
 
         const product = await Product.create({
-            sellerId,
+            userId,
             name,
             categoryId,
+            category:category.name,
             price,
             description,
             quantity,
             features,
-            images: images,
+            images: image,
             reviews: reviews,
            
         });
@@ -240,17 +288,211 @@ exports.getProduct = async (req, res) => {
 
 
 exports.updateProduct = async (req, res) => {
-    const userId = req.userId;
     try {
-        const products = await Product.find({ sellerId: userId });
-        console.log(products);
-        res.status(200).json({ success: true, products });
+        // const image = req.files.map(file => file.filename);
+        const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+        const { id } = req.params;
+
+        
+        const updtaeProduct = await Product.findByIdAndUpdate(id, { price:price}, { new: true });
+
+        // Update the product in the database using the received data
+        // Replace this with your actual code to update the product in the database
+
+        res.status(200).json({ success: true, message: "Product updated successfully" });
     } catch (error) {
-        console.error(error);
+        console.error("Error updating product:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
 
+exports.deletProduct = async (req, res) => {
+    const {id: proudctId} = req.params
+    try {
+        const deletedCart = await Product.findByIdAndDelete(proudctId);
+        if (!deletedCart) {
+            return res.status(404).json({
+                success: false,
+                message: "proudct not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "proudct deleted successfully"
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+
+}
 
 
+
+
+//   cart 
+
+
+
+exports.addCart = async (req, res) => {
+    const userId = req.userId;
+    const { id: productId } = req.params;
+    const { quantity } = req.body;
+    
+    try {
+        if (!userId || !productId) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide userId and productId"
+            });
+        }
+
+        // Find existing cart item
+        let existingCart = await Cart.findOne({ userId: userId, productId });
+        if (existingCart) {
+            // Product already in the cart, update quantity and amount
+            existingCart.quantity += parseInt(quantity || 1);
+            existingCart.amount = existingCart.quantity * existingCart.price; // Recalculate amount based on updated quantity
+            await existingCart.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Cart updated successfully",
+                cart: existingCart
+            });
+        } else {
+            // Product not in the cart, create a new cart item
+            const product = await Product.findOne({ _id: productId });
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Product not found"
+                });
+            }
+
+            const cart = await Cart.create({
+                userId,
+                productId,
+                quantity: parseInt(quantity || 1),
+                price: product.price // Assign product price to cart item
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Cart added successfully",
+                cart
+            });
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+ exports.getCart = async (req, res) => {
+    const userId = req.params.id;
+    
+    try {
+        const userCart = await Cart.find({ userId }).populate("productId");        
+        
+        if (!userCart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
+        }
+       
+        res.status(200).json({
+            length: userCart.length ,
+            success: true,
+            userCart   
+         });
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Controller
+exports.editCart = async (req, res) => {
+    const { id: cartId } = req.params;
+    const { quantity: newQuantity } = req.body;
+
+    try {
+        const existingCart = await Cart.findById(cartId);
+
+        if (!existingCart) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cart not found'
+            });
+        }
+
+        // Calculate the new quantity by adding the current quantity and the new quantity
+        const currentQuantity = existingCart.quantity || 0;
+        const difference = newQuantity - currentQuantity;
+        const updatedCart = await Cart.findByIdAndUpdate(cartId, { quantity: newQuantity }, { new: true });
+
+        if (!updatedCart) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cart not found'
+            });
+        }
+
+        // Calculate the new total amount
+        updatedCart.amount += difference * updatedCart.price;
+        await updatedCart.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Cart updated successfully',
+            data: updatedCart
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+};
+
+
+
+exports.deletCart = async (req, res) => {
+    const {id: cartId} = req.params
+    try {
+        const deletedCart = await Cart.findByIdAndDelete(cartId);
+        if (!deletedCart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Cart deleted successfully"
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+
+}

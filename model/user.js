@@ -34,6 +34,11 @@ const userschema = new mongoose.Schema({
         enum: ["user", "admin","seller"], // Define allowed roles
         default: "user" // Set default role to customer
     },
+    status: {
+        type: String,
+        enum: ["active", "inactive"], // Define allowed statuses
+        default: "active" // Set default status to active
+    },
     createdAt: {
         type: Date,
         default: Date.now // Automatically set creation date

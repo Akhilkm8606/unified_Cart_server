@@ -176,7 +176,8 @@ exports.updateUser = async (req,res) =>{
 
 
 exports.deletUser = async (req,res) =>{
-    const userId = req.userId;
+    const userId = req.params.id;
+    console.log(userId);
     try {
         const user = await User.findByIdAndDelete(userId)
         if (!user) {
@@ -232,7 +233,7 @@ exports.isAdmin = async (req, res, next) => {
 
 exports.getAllusers  = async (req,res) =>{
     try {
-        const users = await User.find({role: 'user'});
+        const users = await User.find();
         if (!users || users.length === 0) {
           return  res.status(404).json(
                 { success: false, 
@@ -244,7 +245,7 @@ exports.getAllusers  = async (req,res) =>{
             success: true,
             count: users.length,
             message: "users found",
-            users: users
+            users
         });
     
     
