@@ -2,7 +2,6 @@ const Order = require('../model/order');
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
 const Payment = require('../model/payment');
-const { log } = require('console');
 
 const instance = new Razorpay({
     key_id: 'rzp_test_UWrwYMcZFBkSYy',
@@ -97,11 +96,15 @@ exports.getAllOrders = async (req, res) => {
 };
 
 // Get order by ID
-exports.getOrderById = async (req, res) => {
-    const userId = req.params.id;
+exports.getOrderByUserId = async (req, res) => {
+    const userId = req.params.id.trim(); // Trim any leading or trailing spaces
     console.log(userId);
 
     try {
+        const mongoose = require('mongoose');
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid user ID' });
+        }
       
         const orders = await Order.find({ user: userId });
         console.log(orders);
@@ -110,14 +113,58 @@ exports.getOrderById = async (req, res) => {
         }
         res.status(200).json({ success: true, orders });
     } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+exports.getOrderById = async (req, res) => {
+    const id = req.params.id; // Trim any leading or trailing spaces
+    console.log(id);
+
+    try {
+      
+      
+        const orders = await Order.findById( id);
+        console.log(orders);
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ success: false, message: 'No orders found for the user' });
+        }
+        res.status(200).json({ success: true, orders });
+    } catch (error) {
+        console.log(error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
+
+exports.searchOrder = async (req,res) =>{
+    const {id,product,username} =req.query;
+    try {
+        let query ={};
+        if(id){
+            query._id=id
+        }
+        if(product){
+            query['items.name'] = { $regex: new RegExp(product, 'i') };
+        }
+        if(username){
+            query['user.name'] = { $regex: new RegExp(username, 'i') };
+        }
+        const orders = await Order.find(query);
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ success: false, message: 'No orders found' });
+        }
+        res.status(200).json({ success: true, orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
 // Update order status
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
+     
         const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });

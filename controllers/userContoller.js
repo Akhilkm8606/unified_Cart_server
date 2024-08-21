@@ -1,6 +1,7 @@
 const { getToken } = require('../utils/jwtToken');
 const User = require('../model/user');
 const Product = require('../model/product');
+const Order = require('../model/order');
 const Category = require("../model/categoryModel");
 
 
@@ -85,7 +86,6 @@ exports.userLogin = async (req, res,next) => {
             });
         }
         req.user= user;
-        // Generate JWT token using the correct environment variable
         getToken(req,res,next) 
         // res.status(200).json({
         //     success: true,
@@ -105,6 +105,32 @@ exports.userLogin = async (req, res,next) => {
 
 exports.getUser = async (req,res) =>{
     const userId = req.userId;
+   
+
+    try {
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        console.log(user);
+        return res.status(200).json({
+            success: true,
+            user: user
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+  
+
+}
+exports.getUserById = async (req,res) =>{
+    const userId = req.params.id   
 
     try {
         const user = await User.findById(userId)
@@ -132,7 +158,7 @@ exports.updateUser = async (req,res) =>{
     const userId = req.params.id
     
    
- const { name,email,phone } = req.body;
+ const { name,email,phone,status,role } = req.body;
 
     try {
         const user = await User.findById(userId)
@@ -154,6 +180,12 @@ exports.updateUser = async (req,res) =>{
         }
         if (phone) {
             user.phone = phone;
+        }
+        if (status) {
+            user.status = status;
+        }
+        if (role) {
+            user.role = role;
         }
 
  
@@ -288,29 +320,6 @@ exports.getAllSellers = async (req, res) => {
     }
 }
 
-// exports.getAllProducts = async (req,res) =>{
-//     try {
-//         const resultPerPage = 5;
-//         const products = await Product.find();
-//                 if (!products) {
-//             res.status(404).json(
-//                 { success: false, 
-//                 message: "nof found",
-//                  });
-            
-//         }
-//         res.status(200).json(
-//             { success: true, 
-//                 count: products.length,
-//             message: "all products list",
-//             products });
-       
-    
-//     } catch (error) {
-        
-//     }
-
-// }
 exports.getAllProducts = async (req, res) => {
     try {
         const resultPerPage = 5;
@@ -366,3 +375,72 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
+// seller
+exports.ensureSeller = async (req, res, next) => {
+    const userId = req.userId;
+    try {
+        const user = await User.findById(userId);
+        if (!user || user.role !== 'seller') {
+            return res.status(403).json({
+                success: false,
+                message: "User is not an seller"
+            });
+        }
+     else{
+        next();
+     }
+       
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Error checking admin status"
+        });
+    }}
+
+
+   
+
+exports.viewDashboard = async (req, res) => {
+    try {
+      const userId = req.userId;
+      console.log('Seller ID:', userId);
+  
+      // Fetch all products for the seller
+      const products = await Product.find({ userId });
+      if (products.length === 0) {
+        return res.status(404).json({ success: false, message: 'No products found for this seller' });
+      }
+  
+      // Get an array of product IDs
+      const productIds = products.map(product => product._id);
+      console.log('Product IDs:', productIds);
+  
+      // // Log the exact query
+      const query = { 'items.product': { $in: productIds } };
+      console.log('Order Query:', query);
+  
+      // Find orders that contain any of the product IDs
+      const orders = await Order.find(query);
+      console.log('Orders:', orders);
+  
+      if (orders.length === 0) {
+        return res.status(404).json({ success: false, message: 'No orders found for this seller' });
+      }
+  
+      // Respond with products and their related orders
+      return res.status(200).json({
+        success: true,
+        dashboard: {
+            orderCount: orders.length,
+          productCount: products.length,
+          products,
+          orders,
+          
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching seller dashboard data:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };

@@ -193,6 +193,7 @@ exports.deleteReview = async (req, res) => {
 
 
 
+
 exports.addProduct = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -266,7 +267,22 @@ exports.addProduct = async (req, res) => {
 };
 
 
-
+exports.getProductByUserId = async (req, res) => {
+    const userId = req.userId;
+    try {
+        // Find the product by its ID and seller ID
+        const products = await Product.find({userId});
+        console.log(products);
+        if (!userId) {
+            return res.status(404).json({ success: false, message: "Products not found" });
+        }
+        console.log(products);
+        res.status(200).json({ success: true,productCouts:products.length, products });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
 
 exports.getProduct = async (req, res) => {
 
@@ -285,27 +301,42 @@ exports.getProduct = async (req, res) => {
     }
 };
 
-
-
 exports.updateProduct = async (req, res) => {
     try {
-        // const image = req.files.map(file => file.filename);
-        const { name, categoryId, price, description, quantity, features, reviews } = req.body;
-        const { id } = req.params;
-
-        
-        const updtaeProduct = await Product.findByIdAndUpdate(id, { price:price}, { new: true });
-
-        // Update the product in the database using the received data
-        // Replace this with your actual code to update the product in the database
-
-        res.status(200).json({ success: true, message: "Product updated successfully" });
+      const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+      const { id } = req.params;
+      
+      let images = req.body.images; // Existing images if no new files uploaded
+  
+      if (req.files && req.files.length > 0) {
+        images = req.files.map(file => file.filename); // New images if files uploaded
+      }
+  
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        {
+          name,
+          category: categoryId,
+          price,
+          description,
+          quantity,
+          features,
+          reviews,
+          images
+        },
+        { new: true }
+      );
+  
+      if (!updatedProduct) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+  
+      res.status(200).json({ success: true, message: 'Product updated successfully', updatedProduct });
     } catch (error) {
-        console.error("Error updating product:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+      console.error('Error updating product:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
-};
-
+  };
 
 exports.deletProduct = async (req, res) => {
     const {id: proudctId} = req.params

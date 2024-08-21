@@ -27,11 +27,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //create router
-app.use("/",userRoutes)
+app.use("/api/v1",userRoutes)
 
-app.use("/",productRoutes)
+app.use("/api/v1",productRoutes)
 
-app.use("/",orderRoute)
+app.use("/api/v1",orderRoute)
 
 
 module.exports = app;

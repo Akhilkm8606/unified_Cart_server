@@ -1,25 +1,26 @@
 const express = require("express");
 const upload = require('../../middlewear/fileUplod'); // Correct import path
-const { addProduct, getProduct, addCategory, updateCategory, getCategory, addCart, getCart, editCart, deletCart, addReview, getReview, deleteReview, deletCategory, deletProduct, updateProduct } = require("../../controllers/productControler");
+const { addProduct, getProduct, addCategory, updateCategory, getCategory, addCart, getCart, editCart, deletCart, addReview, getReview, deleteReview, deletCategory, deletProduct, updateProduct, getProductByUserId } = require("../../controllers/productControler");
 const verifyToken = require("../../middlewear/auth");
-const { getAllProducts, isAdmin } = require("../../controllers/userContoller");
+const { getAllProducts, isAdmin, ensureSeller } = require("../../controllers/userContoller");
 const { get } = require("mongoose");
+const checkAdminOrSeller = require("../../middlewear/checkAdminOrSeller");
 
 const routes = express.Router();
 
 // Define routes
-routes.route("/addproduct/:id").post(upload.array("image",5), verifyToken, addProduct);
+routes.route("/addproduct/:id").post(upload.array("image",5), verifyToken,checkAdminOrSeller, addProduct);
 routes.post("/addcategories", verifyToken, isAdmin, addCategory);
 routes.get("/categorys", getCategory );
-routes.route("/categorys/update/:id").post( updateCategory );
+routes.route("/categorys/update/:id").post(verifyToken, isAdmin,  updateCategory );
 routes.route("/categorys/delete/:id").delete(verifyToken, isAdmin, deletCategory );
 
 // products
 routes.route("/products").get( getAllProducts);         
 routes.route("/product/:id").get( getProduct);
-routes.route("/product/update/:id").post(upload.array("image"),verifyToken,updateProduct)
+routes.route("/seller/products").get( verifyToken,ensureSeller,getProductByUserId);
+routes.route("/product/update/:id").post(upload.array("image"),verifyToken,checkAdminOrSeller,updateProduct)
 routes.route("/product/:id").delete(deletProduct)
-// routes.route("/addproduct").post(upload.array("image"), verifyToken, addProduct);
 
 //review
 
