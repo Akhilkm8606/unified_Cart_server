@@ -11,9 +11,12 @@ const instance = new Razorpay({
 // Create a new order
 exports.createOrder = async (req, res) => {
     try {
-        const { user, items, totalPrice, status, shippingAddress, paymentMethod } = req.body;
-        const order = new Order({ user, items, totalPrice, status, shippingAddress, paymentMethod });
+        const { user, items, totalPrice, status, shippingAddress, paymentMethod,sellerId } = req.body;
+        const order = new Order({ user, items, totalPrice, status, shippingAddress, paymentMethod,sellerId });
        
+        console.log(req.body);
+        
+
         if (order.paymentMethod.toLowerCase() === 'cash on delivery'){
             await order.save();
             return res.status(201).json({ success: true, order, message: "Order placed successfully." });
@@ -96,7 +99,33 @@ exports.getAllOrders = async (req, res) => {
 };
 
 // Get order by ID
+exports.getownOrders = async (req, res) => {
+    try {
+      const sellerId = req.userId; // Ensure req.userId is correctly set
+      console.log(sellerId, 'pp');
+  
+      // Fetch orders for the seller and populate the products
+      const orders = await Order.find({ sellerId }).populate('items.product');
+  
+      res.status(200).json({
+        totalOrders: orders.length ,
+        success: true,
+        orders,        // The orders array
+       // The length of the orders array
+      });
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch orders'
+      });
+    }
+  };
+  
+
+
 exports.getOrderByUserId = async (req, res) => {
+    
     const userId = req.params.id.trim(); // Trim any leading or trailing spaces
     console.log(userId);
 

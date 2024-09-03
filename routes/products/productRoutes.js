@@ -2,7 +2,7 @@ const express = require("express");
 const upload = require('../../middlewear/fileUplod'); // Correct import path
 const { addProduct, getProduct, addCategory, updateCategory, getCategory, addCart, getCart, editCart, deletCart, addReview, getReview, deleteReview, deletCategory, deletProduct, updateProduct, getProductByUserId } = require("../../controllers/productControler");
 const verifyToken = require("../../middlewear/auth");
-const { getAllProducts, isAdmin, ensureSeller } = require("../../controllers/userContoller");
+const { getAllProducts,  ensureSeller, isAdminOrSeller } = require("../../controllers/userContoller");
 const { get } = require("mongoose");
 const checkAdminOrSeller = require("../../middlewear/checkAdminOrSeller");
 
@@ -10,10 +10,10 @@ const routes = express.Router();
 
 // Define routes
 routes.route("/addproduct/:id").post(upload.array("image",5), verifyToken,checkAdminOrSeller, addProduct);
-routes.post("/addcategories", verifyToken, isAdmin, addCategory);
+routes.post("/addcategories", verifyToken, isAdminOrSeller, addCategory);
 routes.get("/categorys", getCategory );
-routes.route("/categorys/update/:id").post(verifyToken, isAdmin,  updateCategory );
-routes.route("/categorys/delete/:id").delete(verifyToken, isAdmin, deletCategory );
+routes.route("/categorys/update/:id").post(verifyToken, isAdminOrSeller,  updateCategory );
+routes.route("/categorys/delete/:id").delete(verifyToken, isAdminOrSeller, deletCategory );
 
 // products
 routes.route("/products").get( getAllProducts);         

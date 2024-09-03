@@ -237,31 +237,27 @@ exports.deletUser = async (req,res) =>{
 
 
 
-exports.isAdmin = async (req, res, next) => {
+exports.isAdminOrSeller = async (req, res, next) => {
     const userId = req.userId;
     try {
-       
-        
-       
         const user = await User.findById(userId);
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'seller')) {
             return res.status(403).json({
                 success: false,
-                message: "User is not an admin"
+                message: "User is neither an admin nor a seller"
             });
+        } else {
+            next();
         }
-     else{
-        next();
-     }
-       
     } catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
-            message: "Error checking admin status"
+            message: "Error checking user role"
         });
     }
 };
+
 
 exports.getAllusers  = async (req,res) =>{
     try {

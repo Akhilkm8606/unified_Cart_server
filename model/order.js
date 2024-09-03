@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 
 
 const orderSchema = new mongoose.Schema({
+
+    sellerId: { // Add this line
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Seller', // Reference to the Seller model
+        required: true
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Reference to the User model
