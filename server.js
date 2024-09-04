@@ -7,8 +7,8 @@ const connectDB = require("./connection/db");
 connectDB();
 
 const instance = new Razorpay({
-    key_id: process.env.KEY_ID,
-    key_secret: process.env.KEY_SECRET
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
 // Log instance to see if it's initialized correctly
