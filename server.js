@@ -21,10 +21,12 @@ console.log(`Razorpay Key Secret: ${process.env.RAZORPAY_KEY_SECRET}`);
 
 app.use(cookieparser());
 app.use('/uploads', express.static('uploads'));
+
 app.use(cors({
     credentials: true,
     origin: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,6 +38,7 @@ app.use("/api/v1", userRoutes);
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", orderRoute);
 
+// Exporting a handler function
 module.exports = (req, res) => {
-    app(req, res);
+    app(req, res); // Pass the request and response to the Express app
 };

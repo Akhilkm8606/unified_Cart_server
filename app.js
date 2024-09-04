@@ -24,8 +24,8 @@ app.use(cookieparser());
 app.use('/uploads', express.static('uploads'));
 
 app.use(cors({
-    origin: [true],
     credentials: true,
+    origin: true,
 }));
 
 app.use(express.json());
