@@ -1,38 +1,43 @@
 const express = require("express");
 const Razorpay = require("razorpay");
+const dotenv = require('dotenv');
+const path = require('path');
+const cors = require("cors");
+const cookieparser = require('cookie-parser');
+const connectDB = require("./connection/db");
+
+dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
 
 const app = express();
+connectDB();
 
-const dotenv = require('dotenv')
-const path =require('path');
-const cors = require("cors");
-const cookieparser = require('cookie-parser')
+const instance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
-const userRoutes = require("./routes/userRoute/user");
+// Log key_id and key_secret to ensure they are correct
+console.log(`Razorpay Key ID: ${process.env.RAZORPAY_KEY_ID}`);
+console.log(`Razorpay Key Secret: ${process.env.RAZORPAY_KEY_SECRET}`);
 
-const productRoutes = require("./routes/products/productRoutes");
-
-const orderRoute = require("./routes/order/orderRoutes");
-dotenv.config({path: path.resolve(__dirname, 'confiq', 'confiq.env')});
-app.use(cookieparser())
+app.use(cookieparser());
 app.use('/uploads', express.static('uploads'));
-
 
 app.use(cors({
     credentials: true,
     origin: true,
 }));
-app.use(express.json());
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//create router
-app.use("/api/v1",userRoutes)
+// Define your routes
+const userRoutes = require("./routes/userRoute/user");
+const productRoutes = require("./routes/products/productRoutes");
+const orderRoute = require("./routes/order/orderRoutes");
 
-app.use("/api/v1",productRoutes)
-
-app.use("/api/v1",orderRoute)
-
+app.use("/api/v1", userRoutes);
+app.use("/api/v1", productRoutes);
+app.use("/api/v1", orderRoute);
 
 module.exports = app;
-
