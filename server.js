@@ -58,6 +58,7 @@ app.get("/", (req, res) => {
     res.send("Server is running");
 });
 
+// Exporting a handler function for serverless environments
 module.exports = (req, res) => {
     console.log("Request received");
     app(req, res); // Pass the request and response to the Express app
