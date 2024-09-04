@@ -25,8 +25,8 @@ app.use('/uploads', express.static('uploads'));
 
 app.use(cors({
     origin: ['https://unified-cart-client-hhiw.vercel.app/'],
+    methods :["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-    methods :["GET", "POST", "PUT", "DELETE"]
 }));
 
 app.use(express.json());
