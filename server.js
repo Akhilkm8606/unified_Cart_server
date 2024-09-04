@@ -27,7 +27,6 @@ app.use(cors({
     credentials: true,
     origin: true,
 }));
-
 app.use(
     helmet.contentSecurityPolicy({
         directives: {
@@ -40,7 +39,6 @@ app.use(
         },
     })
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -52,29 +50,7 @@ app.use("/api/v1", userRoutes);
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", orderRoute);
 
-// 404 handler
-app.use((req, res, next) => {
-    res.status(404).json({
-        message: 'Resource not found',
-    });
-});
-
-// Basic error handler
-app.use((err, req, res, next) => {
-    console.error(err.stack); // Log the error stack for debugging
-
-    if (process.env.NODE_ENV === 'development') {
-        // In development, send detailed error info
-        res.status(err.status || 500).json({
-            message: err.message,
-            stack: err.stack,
-        });
-    } else {
-        // In production, send a generic error message
-        res.status(err.status || 500).json({
-            message: 'Something went wrong!',
-        });
-    }
-});
-
-module.exports = app;
+// Export the handler function
+module.exports = (req, res) => {
+    app(req, res); // Pass the request and response to the Express app
+};
