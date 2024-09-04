@@ -9,10 +9,6 @@ const connectDB = require("./connection/db");
 
 dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
 
-console.log("Environment variables loaded");
-console.log(`RAZORPAY_KEY_ID: ${process.env.RAZORPAY_KEY_ID}`);
-console.log(`RAZORPAY_KEY_SECRET: ${process.env.RAZORPAY_KEY_SECRET}`);
-
 const app = express();
 connectDB();
 
@@ -21,6 +17,9 @@ const instance = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
+console.log(`Razorpay Key ID: ${process.env.RAZORPAY_KEY_ID}`);
+console.log(`Razorpay Key Secret: ${process.env.RAZORPAY_KEY_SECRET}`);
+
 app.use(cookieparser());
 app.use('/uploads', express.static('uploads'));
 
@@ -28,7 +27,6 @@ app.use(cors({
     credentials: true,
     origin: true,
 }));
-
 app.use(
     helmet.contentSecurityPolicy({
         directives: {
@@ -41,7 +39,6 @@ app.use(
         },
     })
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -53,12 +50,7 @@ app.use("/api/v1", userRoutes);
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", orderRoute);
 
-app.get("/", (req, res) => {
-    console.log("Root endpoint hit");
-    res.send("Server is running");
-});
-
+// Export the handler function
 module.exports = (req, res) => {
-    console.log("Request received");
     app(req, res); // Pass the request and response to the Express app
 };
