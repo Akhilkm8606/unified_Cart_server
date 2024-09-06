@@ -39,6 +39,7 @@ app.use(
       scriptSrc: ["'self'"],
     },
   })
+  
 );
 
 app.use(express.json());
