@@ -10,6 +10,9 @@ const serverless = require('serverless-http'); // Added for serverless environme
 
 // Load environment variables from config file
 dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
+console.log("Environment variables loaded");
+console.log(`RAZORPAY_KEY_ID: ${process.env.RAZORPAY_KEY_ID}`);
+console.log(`RAZORPAY_KEY_SECRET: ${process.env.RAZORPAY_KEY_SECRET}`);
 
 const app = express();
 
@@ -81,5 +84,5 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-// Export for serverless environment
-module.exports.handler = serverless(app);  // Use serverless-http to wrap Express app for serverless environments
+// Direct default export for serverless environments
+module.exports = serverless(app);  // Export directly for Vercel
