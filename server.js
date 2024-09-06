@@ -25,7 +25,7 @@ app.use(cookieparser());
 app.use('/uploads', express.static('uploads'));
 
 app.use(cors({
-    origin: 'https://your-vercel-domain.vercel.app',
+    origin: 'https://unified-cart-client-hhiw.vercel.app',
     methods: 'GET,POST,PUT,DELETE',
     credentials: true,
 
