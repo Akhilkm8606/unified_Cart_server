@@ -16,7 +16,7 @@ console.log(`RAZORPAY_KEY_SECRET: ${process.env.RAZORPAY_KEY_SECRET}`);
 const app = express();
 connectDB();
 app.use(cors({
-    origin: 'https://unified-cart-client-6ozi.vercel.app',
+    origin: 'https://unified-cart-client-q6vg.vercel.app',
     methods: 'GET,POST,PUT,DELETE',
     credentials: true,
 
