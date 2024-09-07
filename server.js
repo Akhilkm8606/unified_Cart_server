@@ -4,10 +4,9 @@ const helmet = require('helmet');
 const path = require('path');
 const cors = require("cors");
 const cookieParser = require('cookie-parser');
+const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
 const cloudinary = require('cloudinary').v2;
 const connectDB = require("./connection/db");
-const multer = require("multer");
-const upload = require("./middlewear/fileUplod");
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
@@ -34,6 +33,7 @@ cloudinary.config({
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Security headers
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -68,7 +68,7 @@ app.get("/", (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Something went wrong!', error: err.message });
+  res.status(500).send('Something broke!');
 });
 
 // Start the server
