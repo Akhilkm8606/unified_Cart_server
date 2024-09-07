@@ -18,6 +18,7 @@ const {
     removeFromCart
 } = require("../../controllers/productControler");
 const verifyToken = require("../../middlewear/auth");
+const { getAllProducts } = require("../../controllers/userContoller");
 
 // Category Routes
 router.post("/category", addCategory);
@@ -34,7 +35,7 @@ router.delete("/review/:id", deleteReview);
 router.post('/product/:id', upload.array('images'), uploadToCloudinary, addProduct);
 router.put("/product/:id", upload.array('images'), uploadToCloudinary, updateProduct);
 router.delete("/product/:id", deleteProduct);
-router.get("/products", getProducts);
+router.get("/products", getAllProducts);
 router.get("/product/:id", getSingleProduct);
 
 // Cart Routes
