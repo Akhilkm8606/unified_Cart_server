@@ -31,7 +31,7 @@ router.get("/reviews/:id", getReview);
 router.delete("/review/:id", deleteReview);
 
 // Product Routes
-router.post("/product/:id", upload.array('images'), uploadToCloudinary, addProduct);
+router.post('/product/:id', upload.array('images'), uploadToCloudinary, addProduct);
 router.put("/product/:id", upload.array('images'), uploadToCloudinary, updateProduct);
 router.delete("/product/:id", deleteProduct);
 router.get("/products", getProducts);

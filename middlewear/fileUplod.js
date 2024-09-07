@@ -3,14 +3,12 @@ const { v2: cloudinary } = require('cloudinary');
 const express = require('express');
 const router = express.Router();
 
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configure Multer to store files in memory
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
@@ -21,8 +19,10 @@ const upload = multer({
   }
 });
 
-// Middleware to upload images to Cloudinary
 const uploadToCloudinary = (req, res, next) => {
+  console.log('Files:', req.files);
+  console.log('Body:', req.body);
+
   if (req.files && req.files.length > 0) {
     const uploadPromises = req.files.map(file =>
       new Promise((resolve, reject) => {
@@ -38,12 +38,12 @@ const uploadToCloudinary = (req, res, next) => {
 
     Promise.all(uploadPromises)
       .then(urls => {
-        req.imageUrls = urls; // Attach image URLs to the request object
+        req.imageUrls = urls; 
         next();
       })
       .catch(err => next(err));
   } else {
-    next(); // No files to upload
+    next(); 
   }
 };
 
