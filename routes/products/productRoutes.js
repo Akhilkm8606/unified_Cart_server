@@ -9,7 +9,7 @@ const checkAdminOrSeller = require("../../middlewear/checkAdminOrSeller");
 const routes = express.Router();
 
 // Define routes
-routes.route("/addproduct/:id").post(upload.array("image",5), verifyToken,checkAdminOrSeller, addProduct);
+routes.route("/addproduct/:id").post(upload.array("image",5), verifyToken,isAdminOrSeller, addProduct);
 routes.post("/addcategories", verifyToken, isAdminOrSeller, addCategory);
 routes.get("/categorys", getCategory );
 routes.route("/categorys/update/:id").post(verifyToken, isAdminOrSeller,  updateCategory );

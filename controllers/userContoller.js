@@ -14,8 +14,6 @@ exports.userRegister = async (req, res) => {
     const { username, email, phone, address, password, confirmPassword } = req.body;
 
     try {
-        console.log('hi');
-        
         if (!username || !email || !phone || !address || !password || !confirmPassword) {
             return res.status(400).json({
                 success: false,
@@ -67,39 +65,42 @@ exports.userRegister = async (req, res) => {
     }
 };
 
-exports.userLogin = async (req, res, next) => {
+exports.userLogin = async (req, res,next) => {
     const { email, password } = req.body;
     try {
-        console.log("Login request received");
-        console.log("Email:", email);
-
+        
         const user = await User.findOne({ email });
-
+        
+       
         if (!user) {
-            console.log("User not found");
             return res.status(400).json({
                 success: false,
                 message: "User not found"
             });
         }
 
-        const passwordMatch = await passwordIsMatch(password, user.password);
+        const passwordMatch = await passwordIsMatch(password, user.password)
         if (!passwordMatch) {
-            console.log("Invalid credentials");
             return res.status(400).json({
                 success: false,
                 message: "Invalid credentials"
             });
         }
-
-        req.user = user;
-        getToken(req, res);  // Ensure this function is correctly sending a response
+        req.user= user;
+        getToken(req,res,next) 
+        // res.status(200).json({
+        //     success: true,
+          
+        //     message: "Login successfully completed!"
+        // });
+        
     } catch (error) {
-        console.error("Error during login:", error);
+        console.error(error);
+
         res.status(500).json({
             success: false,
             message: "Login failed"
-        });
+        }); 
     }
 }
 
