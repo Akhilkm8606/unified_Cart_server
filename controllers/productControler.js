@@ -179,7 +179,8 @@ exports.deleteReview = async (req, res) => {
 };
 
 // Add Product
-xports.addProduct = async (req, res) => {
+
+exports.addProduct = async (req, res) => {
     try {
       const userId = req.params.id;
   
