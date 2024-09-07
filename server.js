@@ -11,8 +11,11 @@ const connectDB = require("./connection/db");
 dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
 
 const app = express();
+
+// Connect to the database
 connectDB();
 
+// Set up CORS
 app.use(cors({
   origin: 'https://unified-cart-client-q6vg.vercel.app',
   methods: 'GET,POST,PUT,DELETE',
@@ -26,7 +29,7 @@ const razorpayInstance = new Razorpay({
 });
 
 app.use(cookieparser());
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(
   helmet.contentSecurityPolicy({
@@ -39,16 +42,17 @@ app.use(
       scriptSrc: ["'self'"],
     },
   })
-  
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Import routes
 const userRoutes = require("./routes/userRoute/user");
 const productRoutes = require("./routes/products/productRoutes");
 const orderRoute = require("./routes/order/orderRoutes");
 
+// Use routes
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", orderRoute);
@@ -58,11 +62,14 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-module.exports = (req, res) => {
-  console.log("Request received");
-  app(req, res); // Pass the request and response to the Express app
-};
+module.exports = app;

@@ -14,7 +14,9 @@ exports.addCategory = async (req, res) => {
     try {
         const { name
         } = req.body;
-
+        console.log(name);
+        
+x
         if (!name) {
             return res.status(400).json({
                 success: false,
