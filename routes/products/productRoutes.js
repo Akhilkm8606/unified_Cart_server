@@ -14,8 +14,10 @@ const {
     deleteProduct,
     getProducts,
     getSingleProduct,
-    addToCart,
-    removeFromCart
+    removeFromCart,
+    editCart,
+    getCart,
+    addToCart
 } = require("../../controllers/productControler");
 const verifyToken = require("../../middlewear/auth");
 const { getAllProducts } = require("../../controllers/userContoller");
@@ -39,7 +41,10 @@ router.get("/products", getAllProducts);
 router.get("/product/:id", getSingleProduct);
 
 // Cart Routes
-router.post("/cart", addToCart);
-router.delete("/cart", removeFromCart);
+router.post("/cart/:id", verifyToken,addToCart);
+router.delete("/cart", verifyToken,removeFromCart);
+router.delete("/cart", verifyToken,removeFromCart);
+router.get("/carts/:id", verifyToken, getCart);
+router.put("/cart/edit/:id", verifyToken, editCart);
 
 module.exports = router;

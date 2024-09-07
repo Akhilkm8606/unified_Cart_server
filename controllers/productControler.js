@@ -383,6 +383,7 @@ exports.getSingleProduct = async (req, res) => {
 };
 
 // Add to Cart
+
 exports.addToCart = async (req, res) => {
     try {
         const userId = req.userId;
@@ -413,23 +414,102 @@ exports.addToCart = async (req, res) => {
     }
 };
 
-// Remove from Cart
-exports.removeFromCart = async (req, res) => {
+
+ exports.getCart = async (req, res) => {
+    const userId = req.params.id;
+    
     try {
-        const userId = req.userId;
-        const { productId } = req.body;
-
-        const cart = await Cart.findOne({ userId });
-        if (!cart) {
-            return res.status(404).json({ success: false, message: "Cart not found" });
+        const userCart = await Cart.find({ userId }).populate("productId");        
+        
+        if (!userCart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
         }
+       
+        res.status(200).json({
+            length: userCart.length ,
+            success: true,
+            userCart   
+         });
 
-        cart.items = cart.items.filter(item => item.productId.toString() !== productId);
-
-        await cart.save();
-        res.status(200).json({ success: true, message: "Product removed from cart successfully", cart });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        console.log(error.message);
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
     }
 };
+
+// Controller
+exports.editCart = async (req, res) => {
+    const { id: cartId } = req.params;
+    const { quantity: newQuantity } = req.body;
+
+    try {
+        const existingCart = await Cart.findById(cartId);
+
+        if (!existingCart) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cart not found'
+            });
+        }
+
+        // Calculate the new quantity by adding the current quantity and the new quantity
+        const currentQuantity = existingCart.quantity || 0;
+        const difference = newQuantity - currentQuantity;
+        const updatedCart = await Cart.findByIdAndUpdate(cartId, { quantity: newQuantity }, { new: true });
+
+        if (!updatedCart) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cart not found'
+            });
+        }
+
+        // Calculate the new total amount
+        updatedCart.amount += difference * updatedCart.price;
+        await updatedCart.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Cart updated successfully',
+            data: updatedCart
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+};
+
+
+
+exports.removeFromCart = async (req, res) => {
+    const {id: cartId} = req.params
+    try {
+        const deletedCart = await Cart.findByIdAndDelete(cartId);
+        if (!deletedCart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Cart deleted successfully"
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+
+}
