@@ -7,6 +7,7 @@ const upload = require("../middlewear/fileUplod");
 const User = require("../model/user");
 const Cart = require('../model/cart');
 
+const cloudinary = require('cloudinary').v2;
 
 
 exports.addCategory = async (req, res) => {
@@ -196,43 +197,47 @@ exports.deleteReview = async (req, res) => {
 
 
 
+
+// Add product
 exports.addProduct = async (req, res) => {
     try {
         const userId = req.params.id;
-      
-        const image = req.files.map(file => file.filename);
 
-        console.log(image);
-        const { name, categoryId, price, description, quantity, features ,reviews} = req.body;
-      
-     
+        // Upload images to Cloudinary
+        const imagePromises = req.files.map(file =>
+            cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                if (error) throw error;
+                return result.secure_url;
+            }).end(file.buffer)
+        );
 
-        if (!name || !categoryId || !price || !description || !quantity || !features || !image ) {
+        const images = await Promise.all(imagePromises);
+
+        const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+
+        if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
             return res.status(400).json({
                 success: false,
                 message: "All fields including images and reviews are required"
             });
         }
 
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: "Category not found"
+            });
+        }
 
-        // Calculate the overall rating
-       // Filter out reviews without a valid rating
-
-       const category = await Category.findById(categoryId);
-       if (!category) {
-           return res.status(404).json({
-               success: false,
-               message: "Category not found"
-           });
-       }
         const existingProduct = await Product.findOne({
             userId,
             name,
             categoryId,
-            category:category.name,
+            category: category.name,
             price,
             features,
-            images: image,
+            images
         });
 
         if (existingProduct) {
@@ -246,20 +251,19 @@ exports.addProduct = async (req, res) => {
             userId,
             name,
             categoryId,
-            category:category.name,
+            category: category.name,
             price,
             description,
             quantity,
             features,
-            images: image,
-            reviews: reviews,
-           
+            images,
+            reviews
         });
 
         res.status(200).json({
             success: true,
             message: "Product added successfully",
-            product: product,
+            product
         });
 
     } catch (error) {
@@ -268,6 +272,51 @@ exports.addProduct = async (req, res) => {
     }
 };
 
+// Update product
+exports.updateProduct = async (req, res) => {
+    try {
+        const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+        const { id } = req.params;
+
+        let images = req.body.images; // Existing images if no new files uploaded
+
+        if (req.files && req.files.length > 0) {
+            // Upload new images to Cloudinary
+            const imagePromises = req.files.map(file =>
+                cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error) throw error;
+                    return result.secure_url;
+                }).end(file.buffer)
+            );
+
+            images = await Promise.all(imagePromises);
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            {
+                name,
+                category: categoryId,
+                price,
+                description,
+                quantity,
+                features,
+                reviews,
+                images
+            },
+            { new: true }
+        );
+
+        if (!updatedProduct) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Product updated successfully', updatedProduct });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
 
 exports.getProductByUserId = async (req, res) => {
     const userId = req.userId;
@@ -303,42 +352,7 @@ exports.getProduct = async (req, res) => {
     }
 };
 
-exports.updateProduct = async (req, res) => {
-    try {
-      const { name, categoryId, price, description, quantity, features, reviews } = req.body;
-      const { id } = req.params;
-      
-      let images = req.body.images; // Existing images if no new files uploaded
-  
-      if (req.files && req.files.length > 0) {
-        images = req.files.map(file => file.filename); // New images if files uploaded
-      }
-  
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        {
-          name,
-          category: categoryId,
-          price,
-          description,
-          quantity,
-          features,
-          reviews,
-          images
-        },
-        { new: true }
-      );
-  
-      if (!updatedProduct) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
-      }
-  
-      res.status(200).json({ success: true, message: 'Product updated successfully', updatedProduct });
-    } catch (error) {
-      console.error('Error updating product:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-  };
+
 
 exports.deletProduct = async (req, res) => {
     const {id: proudctId} = req.params

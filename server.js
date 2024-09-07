@@ -1,10 +1,10 @@
 const express = require("express");
-const Razorpay = require("razorpay");
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const path = require('path');
 const cors = require("cors");
-const cookieparser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
+const cloudinary = require('cloudinary').v2;
 const connectDB = require("./connection/db");
 
 // Load environment variables
@@ -22,13 +22,14 @@ app.use(cors({
   credentials: true,
 }));
 
-// Initialize Razorpay with environment variables
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-app.use(cookieparser());
+app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(
