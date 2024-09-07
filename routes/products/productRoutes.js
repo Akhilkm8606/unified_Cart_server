@@ -41,7 +41,7 @@ router.get("/products", getAllProducts);
 router.get("/product/:id", getSingleProduct);
 
 // Cart Routes
-router.post("/product/addCart/:id", verifyToken,addToCart);
+router.post("/product/addCart", verifyToken,addToCart);
 router.delete("/cart/:id", verifyToken,removeFromCart);
 router.get("/carts", verifyToken, getCart);
 router.put("/cart/edit/:id", verifyToken, editCart);
