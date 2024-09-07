@@ -11,8 +11,14 @@ cloudinary.config({
 // Configure Multer to store files in memory
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname !== 'image') {
+      return cb(new multer.MulterError('Unexpected field'), false);
+    }
+    cb(null, true);
+  }
 });
+
 
 // Middleware to upload images to Cloudinary
 const uploadToCloudinary = (req, res, next) => {
