@@ -179,155 +179,155 @@ exports.deleteReview = async (req, res) => {
 };
 
 // Add Product
-exports.addProduct = async (req, res) => {
+xports.addProduct = async (req, res) => {
     try {
-        const userId = req.params.id;
-
-        // Upload images to Cloudinary
-        const imagePromises = req.files.map(file =>
-            new Promise((resolve, reject) => {
-                cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(result.secure_url);
-                    }
-                }).end(file.buffer);
-            })
-        );
-
-        const images = await Promise.all(imagePromises);
-
-        const { name, categoryId, price, description, quantity, features, reviews } = req.body;
-
-        if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields including images and reviews are required"
-            });
-        }
-
-        const category = await Category.findById(categoryId);
-        if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found"
-            });
-        }
-
-        const existingProduct = await Product.findOne({
-            userId,
-            name,
-            categoryId,
-            category: category.name,
-            price,
-            features,
-            images
+      const userId = req.params.id;
+  
+      // Upload images to Cloudinary
+      const imagePromises = req.files.map(file =>
+        new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result.secure_url);
+            }
+          }).end(file.buffer);
+        })
+      );
+  
+      const images = await Promise.all(imagePromises);
+  
+      const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+  
+      if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields including images and reviews are required"
         });
-
-        if (existingProduct) {
-            return res.status(400).json({
-                success: false,
-                message: "Product already exists. Please update the existing product quantity."
-            });
-        }
-
-        const product = await Product.create({
-            userId,
-            name,
-            categoryId,
-            category: category.name,
-            price,
-            description,
-            quantity,
-            features,
-            images,
-            reviews
+      }
+  
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found"
         });
-
-        res.status(200).json({
-            success: true,
-            message: "Product added successfully",
-            product
+      }
+  
+      const existingProduct = await Product.findOne({
+        userId,
+        name,
+        categoryId,
+        category: category.name,
+        price,
+        features,
+        images
+      });
+  
+      if (existingProduct) {
+        return res.status(400).json({
+          success: false,
+          message: "Product already exists. Please update the existing product quantity."
         });
-
+      }
+  
+      const product = await Product.create({
+        userId,
+        name,
+        categoryId,
+        category: category.name,
+        price,
+        description,
+        quantity,
+        features,
+        images,
+        reviews
+      });
+  
+      res.status(200).json({
+        success: true,
+        message: "Product added successfully",
+        product
+      });
+  
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Failed to add product', error: error.message });
+      console.error(error);
+      res.status(500).json({ message: 'Failed to add product', error: error.message });
     }
-};
-
-// Update Product
-exports.updateProduct = async (req, res) => {
+  };
+  
+  // Update Product
+  exports.updateProduct = async (req, res) => {
     try {
-        const userId = req.userId;
-        const productId = req.params.id;
-
-        // Upload images to Cloudinary
-        const imagePromises = req.files.map(file =>
-            new Promise((resolve, reject) => {
-                cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(result.secure_url);
-                    }
-                }).end(file.buffer);
-            })
-        );
-
-        const images = await Promise.all(imagePromises);
-
-        const { name, categoryId, price, description, quantity, features, reviews } = req.body;
-
-        if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields including images and reviews are required"
-            });
-        }
-
-        const category = await Category.findById(categoryId);
-        if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found"
-            });
-        }
-
-        const product = await Product.findOneAndUpdate(
-            { userId, _id: productId },
-            {
-                name,
-                categoryId,
-                category: category.name,
-                price,
-                description,
-                quantity,
-                features,
-                images,
-                reviews
-            },
-            { new: true }
-        );
-
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "Product updated successfully",
-            product
+      const userId = req.userId;
+      const productId = req.params.id;
+  
+      // Upload images to Cloudinary
+      const imagePromises = req.files.map(file =>
+        new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result.secure_url);
+            }
+          }).end(file.buffer);
+        })
+      );
+  
+      const images = await Promise.all(imagePromises);
+  
+      const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+  
+      if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields including images and reviews are required"
         });
+      }
+  
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found"
+        });
+      }
+  
+      const product = await Product.findOneAndUpdate(
+        { userId, _id: productId },
+        {
+          name,
+          categoryId,
+          category: category.name,
+          price,
+          description,
+          quantity,
+          features,
+          images,
+          reviews
+        },
+        { new: true }
+      );
+  
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found"
+        });
+      }
+  
+      res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+        product
+      });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+      console.error(error);
+      res.status(500).json({ success: false, message: "Internal server error" });
     }
-};
+  };
 
 // Delete Product
 exports.deleteProduct = async (req, res) => {

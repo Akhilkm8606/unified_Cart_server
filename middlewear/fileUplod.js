@@ -1,5 +1,7 @@
 const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
+const express = require('express');
+const router = express.Router();
 
 // Configure Cloudinary
 cloudinary.config({
@@ -12,13 +14,12 @@ cloudinary.config({
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
-    if (file.fieldname !== 'image') {
+    if (file.fieldname !== 'images') {
       return cb(new multer.MulterError('Unexpected field'), false);
     }
     cb(null, true);
   }
 });
-
 
 // Middleware to upload images to Cloudinary
 const uploadToCloudinary = (req, res, next) => {
