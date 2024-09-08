@@ -150,7 +150,11 @@ exports.getReview = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        res.status(200).json({ success: true, reviews: product.reviews,length :product.length });
+        res.status(200).json({ success: true, 
+            
+            reviews: product.reviews, 
+            length: product.reviews.length
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Internal server error" });
