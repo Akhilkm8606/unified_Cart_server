@@ -389,8 +389,7 @@ exports.getSingleProduct = async (req, res) => {
 // Add to Cart
 
 exports.addToCart = async (req, res) => {
-    const userId = req.userId;
-
+    const userId = req.userId; // Retrieved from the verified token
     const { id: productId } = req.params;
     const { quantity } = req.body;
     
@@ -402,22 +401,21 @@ exports.addToCart = async (req, res) => {
             });
         }
 
-        // Find existing cart item
-        let existingCart = await Cart.findOne({ userId: userId, productId });
+        let existingCart = await Cart.findOne({ userId, productId });
         if (existingCart) {
-            // Product already in the cart, update quantity and amount
+            // Update cart item
             existingCart.quantity += parseInt(quantity || 1);
-            existingCart.amount = existingCart.quantity * existingCart.price; // Recalculate amount based on updated quantity
+            existingCart.amount = existingCart.quantity * existingCart.price;
             await existingCart.save();
-
+            
             return res.status(200).json({
                 success: true,
                 message: "Cart updated successfully",
                 cart: existingCart
             });
         } else {
-            // Product not in the cart, create a new cart item
-            const product = await Product.findOne({ _id: productId });
+            // Create new cart item
+            const product = await Product.findById(productId);
             if (!product) {
                 return res.status(404).json({
                     success: false,
@@ -429,7 +427,7 @@ exports.addToCart = async (req, res) => {
                 userId,
                 productId,
                 quantity: parseInt(quantity || 1),
-                price: product.price // Assign product price to cart item
+                price: product.price,
             });
 
             return res.status(200).json({
@@ -438,10 +436,9 @@ exports.addToCart = async (req, res) => {
                 cart
             });
         }
-
     } catch (error) {
         console.error(error);
-        res.status(400).json({
+        return res.status(500).json({
             success: false,
             message: error.message
         });
@@ -450,33 +447,33 @@ exports.addToCart = async (req, res) => {
 
 
 
- exports.getCart = async (req, res) => {
-    const userId = req.params.id;
-    
+exports.getCart = async (req, res) => {
+    const userId = req.params.id; // Assuming userId is passed in params
+
     try {
-        const userCart = await Cart.find({ userId }).populate("productId");        
-        
-        if (!userCart) {
+        const userCart = await Cart.find({ userId }).populate("productId");
+
+        if (!userCart || userCart.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: "Cart not found"
             });
         }
-       
-        res.status(200).json({
-            length: userCart.length ,
-            success: true,
-            userCart   
-         });
 
+        res.status(200).json({
+            length: userCart.length,
+            success: true,
+            userCart
+        });
     } catch (error) {
-        console.log(error.message);
-        res.status(400).json({
+        console.error(error);
+        return res.status(500).json({
             success: false,
             message: error.message
         });
     }
 };
+
 
 // Controller
 exports.editCart = async (req, res) => {
