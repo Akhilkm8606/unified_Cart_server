@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const path = require('path');
-const cors = require("cors");
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
 const cloudinary = require('cloudinary').v2;
@@ -17,14 +17,14 @@ const app = express();
 connectDB();
 
 // Set your domain for CORS (replace with your actual client domain)
-const clientDomain = 'https://unified-cart-client-q6vg.vercel.app'; // Set your domain here
 
-// Set up CORS
+
 app.use(cors({
-  origin: clientDomain,
+  origin: 'https://unified-cart-client-q6vg.vercel.app', // Your frontend URL
   methods: 'GET,POST,PUT,DELETE',
-  credentials: true,
+  credentials: true // Allow credentials like cookies
 }));
+
 
 // Configure Cloudinary
 cloudinary.config({
@@ -57,7 +57,7 @@ app.use(
       styleSrc: ["'self'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'", clientDomain],
+      connectSrc: ["'self'", "https://unified-cart-client-q6vg.vercel."],
       scriptSrc: ["'self'"],
     },
   })
@@ -91,6 +91,6 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}, connected to domain ${clientDomain}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = app;
