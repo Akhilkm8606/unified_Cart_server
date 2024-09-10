@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const crypto = require('crypto');
 const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
 const cloudinary = require('cloudinary').v2;
 const connectDB = require("./connection/db");
@@ -17,10 +16,7 @@ const app = express();
 // Connect to the database
 connectDB();
 
-// Generate a nonce for CSP
-const generateNonce = () => crypto.randomBytes(16).toString('base64');
-
-// Set your domain for CORS
+// Set up CORS
 app.use(cors({
   origin: 'https://unified-cart-client-q6vg.vercel.app', // Your frontend URL
   methods: 'GET,POST,PUT,DELETE',
@@ -37,38 +33,33 @@ cloudinary.config({
 // Middleware to handle cookies
 app.use(cookieParser());
 
-// Middleware to set CSP headers
+// Setting up cookie security
 app.use((req, res, next) => {
-  res.locals.cspNonce = generateNonce();
-  res.setHeader('Content-Security-Policy', `
-    default-src 'self';
-    script-src 'self' https://checkout.razorpay.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unified-cart-client-q6vg.vercel.app;
-    font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data:;
-    connect-src 'self';
-    frame-src 'self';
-  `);
+  res.cookie('myCookie', 'cookieValue', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Secure in production
+    sameSite: 'Lax' // Set to 'None' for cross-site cookie usage
+  });
   next();
 });
 
 // Static file serving for uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Security headers
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://checkout.razorpay.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unified-cart-client-q6vg.vercel.app"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
-      frameSrc: ["'self'"],
-    },
-  })
-);
+// Security headers using Helmet
+app.use(helmet());
+
+// Set Content Security Policy (CSP)
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    styleSrc: ["'self'", "https://fonts.googleapis.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    imgSrc: ["'self'", "data:"],
+    connectSrc: ["'self'", "https://unified-cart-client-q6vg.vercel.app"],
+    scriptSrc: ["'self'", "https://checkout.razorpay.com"],
+  },
+}));
 
 // JSON body parsing middleware
 app.use(express.json());
