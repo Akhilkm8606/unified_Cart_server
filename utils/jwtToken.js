@@ -12,10 +12,14 @@ exports.getToken = (req, res) => {
     
     console.log('Generated Token:', token);
     console.log('Payload:', payload);
-
+    res.cookie("token", token, {
+      sameSite: "None",
+      secure: true,
+      httpOnly: true,
+             })
     // Send token as a secure, HTTP-only cookie and as a JSON response
     return res.status(200)
-      .cookie("token", token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' })
+
       .json({
         success: true,
         user: req.user,
