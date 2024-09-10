@@ -185,71 +185,72 @@ exports.deleteReview = async (req, res) => {
 // Add Product
 
 
-
 exports.addProduct = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const images = req.imageUrls || []; // Ensure this is correctly set
-
-    const { name, categoryId, price, description, quantity, features, reviews } = req.body;
-
-    if (!name || !categoryId || !price || !description || !quantity || !features || images.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields including images and reviews are required"
+    try {
+      const userId = req.params.id;
+      const images = req.imageUrls || [];
+      const { name, categoryId, price, description, quantity, features, reviews } = req.body;
+  
+      if (!name || !categoryId || !price || !description || !quantity || !features || images.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields including images and reviews are required"
+        });
+      }
+  
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found"
+        });
+      }
+  
+      const existingProduct = await Product.findOne({
+        userId,
+        name,
+        categoryId,
+        category: category.name,
+        price,
+        features,
+        images
+      });
+  
+      if (existingProduct) {
+        return res.status(400).json({
+          success: false,
+          message: "Product already exists. Please update the existing product quantity."
+        });
+      }
+  
+      const product = await Product.create({
+        userId,
+        name,
+        categoryId,
+        category: category.name,
+        price,
+        description,
+        quantity,
+        features,
+        images,
+        reviews
+      });
+  
+      res.status(201).json({
+        success: true,
+        message: "Product added successfully",
+        product
+      });
+  
+    } catch (error) {
+      console.error('Error in addProduct:', error); // Improved logging
+      res.status(500).json({
+        message: 'Failed to add product',
+        error: error.message
       });
     }
-
-    const category = await Category.findById(categoryId);
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found"
-      });
-    }
-
-    const existingProduct = await Product.findOne({
-      userId,
-      name,
-      categoryId,
-      category: category.name,
-      price,
-      features,
-      images
-    });
-
-    if (existingProduct) {
-      return res.status(400).json({
-        success: false,
-        message: "Product already exists. Please update the existing product quantity."
-      });
-    }
-
-    const product = await Product.create({
-      userId,
-      name,
-      categoryId,
-      category: category.name,
-      price,
-      description,
-      quantity,
-      features,
-      images,
-      reviews
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Product added successfully",
-      product
-    });
-
-  } catch (error) {
-    console.error('Error in addProduct:', error); // Enhanced logging
-    res.status(500).json({ message: 'Failed to add product', error: error.message });
-  }
-};
-
+  };
+  
   
   // Update Product
   exports.updateProduct = async (req, res) => {
