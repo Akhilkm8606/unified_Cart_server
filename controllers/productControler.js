@@ -253,11 +253,14 @@ exports.addProduct = async (req, res) => {
   
   
   // Update Product
-  
   exports.updateProduct = async (req, res) => {
     try {
       const userId = req.userId;
       const productId = req.params.id;
+  
+      // Log for debugging
+      console.log("UserId:", userId);
+      console.log("ProductId:", productId);
   
       // Check if files are provided for upload
       let images = [];
@@ -323,6 +326,7 @@ exports.addProduct = async (req, res) => {
       );
   
       if (!product) {
+        console.log("Product not found");
         return res.status(404).json({
           success: false,
           message: "Product not found"
@@ -342,6 +346,7 @@ exports.addProduct = async (req, res) => {
       });
     }
   };
+  
   
 
 // Delete Product
