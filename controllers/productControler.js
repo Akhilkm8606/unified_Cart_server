@@ -253,35 +253,43 @@ exports.addProduct = async (req, res) => {
   
   
   // Update Product
+  
   exports.updateProduct = async (req, res) => {
     try {
       const userId = req.userId;
       const productId = req.params.id;
   
-      // Upload images to Cloudinary
-      const imagePromises = req.files.map(file =>
-        new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(result.secure_url);
-            }
-          }).end(file.buffer);
-        })
-      );
+      // Check if files are provided for upload
+      let images = [];
+      if (req.files && req.files.length > 0) {
+        // Upload images to Cloudinary
+        const imagePromises = req.files.map(file =>
+          new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result.secure_url);
+              }
+            }).end(file.buffer);
+          })
+        );
   
-      const images = await Promise.all(imagePromises);
+        // Wait for all the image uploads to complete
+        images = await Promise.all(imagePromises);
+      }
   
       const { name, categoryId, price, description, quantity, features, reviews } = req.body;
   
-      if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
+      // Validate required fields
+      if (!name || !categoryId || !price || !description || !quantity || !features) {
         return res.status(400).json({
           success: false,
-          message: "All fields including images and reviews are required"
+          message: "All fields (name, category, price, description, quantity, and features) are required"
         });
       }
   
+      // Ensure the category exists
       const category = await Category.findById(categoryId);
       if (!category) {
         return res.status(404).json({
@@ -290,19 +298,27 @@ exports.addProduct = async (req, res) => {
         });
       }
   
+      // Prepare update data
+      const updateData = {
+        name,
+        categoryId,
+        category: category.name,
+        price,
+        description,
+        quantity,
+        features,
+        reviews: reviews || [], // If reviews are not mandatory
+      };
+  
+      // Add images to updateData only if new images are provided
+      if (images.length > 0) {
+        updateData.images = images;
+      }
+  
+      // Update the product
       const product = await Product.findOneAndUpdate(
         { userId, _id: productId },
-        {
-          name,
-          categoryId,
-          category: category.name,
-          price,
-          description,
-          quantity,
-          features,
-          images,
-          reviews
-        },
+        updateData,
         { new: true }
       );
   
@@ -320,9 +336,13 @@ exports.addProduct = async (req, res) => {
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ success: false, message: "Internal server error" });
+      res.status(500).json({
+        success: false,
+        message: "Internal server error"
+      });
     }
   };
+  
 
 // Delete Product
 exports.deleteProduct = async (req, res) => {
