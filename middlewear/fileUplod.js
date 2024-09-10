@@ -14,12 +14,13 @@ cloudinary.config({
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
-    if (file.fieldname !== 'images') {
+    if (file.fieldname !== 'image') {  // Ensure this matches the name of the file input
       return cb(new multer.MulterError('Unexpected field'), false);
     }
     cb(null, true);
   }
 });
+
 
 const uploadToCloudinary = (req, res, next) => {
   console.log('Files:', req.files);
@@ -30,6 +31,7 @@ const uploadToCloudinary = (req, res, next) => {
       new Promise((resolve, reject) => {
         cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
           if (error) {
+            console.error('Cloudinary upload error:', error);
             reject(error);
           } else {
             resolve(result.secure_url);
@@ -43,10 +45,14 @@ const uploadToCloudinary = (req, res, next) => {
         req.imageUrls = urls; 
         next();
       })
-      .catch(err => next(err));
+      .catch(err => {
+        console.error('Error during upload:', err);
+        next(err);
+      });
   } else {
     next(); 
   }
 };
+
 
 module.exports = { upload, uploadToCloudinary };
