@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
 const cloudinary = require('cloudinary').v2;
 const connectDB = require("./connection/db");
@@ -16,15 +17,15 @@ const app = express();
 // Connect to the database
 connectDB();
 
-// Set your domain for CORS (replace with your actual client domain)
+// Generate a nonce for CSP
+const generateNonce = () => crypto.randomBytes(16).toString('base64');
 
-
+// Set your domain for CORS
 app.use(cors({
   origin: 'https://unified-cart-client-q6vg.vercel.app', // Your frontend URL
   methods: 'GET,POST,PUT,DELETE',
   credentials: true // Allow credentials like cookies
 }));
-
 
 // Configure Cloudinary
 cloudinary.config({
@@ -36,13 +37,18 @@ cloudinary.config({
 // Middleware to handle cookies
 app.use(cookieParser());
 
-// Setting up cookie security
+// Middleware to set CSP headers
 app.use((req, res, next) => {
-  res.cookie('myCookie', 'cookieValue', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Secure in production
-    sameSite: 'Lax' // Set to 'None' for cross-site cookie usage
-  });
+  res.locals.cspNonce = generateNonce();
+  res.setHeader('Content-Security-Policy', `
+    default-src 'self';
+    script-src 'self' https://checkout.razorpay.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unified-cart-client-q6vg.vercel.app;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data:;
+    connect-src 'self';
+    frame-src 'self';
+  `);
   next();
 });
 
@@ -54,11 +60,12 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://checkout.razorpay.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unified-cart-client-q6vg.vercel.app"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'", "https://unified-cart-client-q6vg.vercel."],
-      scriptSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'self'"],
     },
   })
 );
