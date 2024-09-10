@@ -189,12 +189,11 @@ exports.deleteReview = async (req, res) => {
 exports.addProduct = async (req, res) => {
   try {
     const userId = req.params.id;
-
-    const images = req.imageUrls || [];
+    const images = req.imageUrls || []; // Ensure this is correctly set
 
     const { name, categoryId, price, description, quantity, features, reviews } = req.body;
 
-    if (!name || !categoryId || !price || !description || !quantity || !features || !images) {
+    if (!name || !categoryId || !price || !description || !quantity || !features || images.length === 0) {
       return res.status(400).json({
         success: false,
         message: "All fields including images and reviews are required"
@@ -239,14 +238,14 @@ exports.addProduct = async (req, res) => {
       reviews
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Product added successfully",
       product
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('Error in addProduct:', error); // Enhanced logging
     res.status(500).json({ message: 'Failed to add product', error: error.message });
   }
 };
