@@ -69,7 +69,7 @@ exports. paymentVerification = async (req, res) => {
                 { paymentStatus: 'paid' }, // Update payment status to 'paid'
                 { new: true } // Return the updated order
             );
-            res.redirect(`http://localhost:3000/PaymentSuccess?refernce=${razorpay_payment_id}`);
+            res.redirect(`https://unified-cart-server.vercel.app/PaymentSuccess?refernce=${razorpay_payment_id}`);
             
         } else {
             // Payment verification failed, delete the order
