@@ -259,8 +259,8 @@ exports.addProduct = async (req, res) => {
       const productId = req.params.id;
   
       // Log for debugging
-      console.log("UserId:", userId);
-      console.log("ProductId:", productId);
+      console.log("UserId from req.userId:", userId);
+      console.log("ProductId from req.params.id:", productId);
   
       // Check if files are provided for upload
       let images = [];
@@ -318,9 +318,9 @@ exports.addProduct = async (req, res) => {
         updateData.images = images;
       }
   
-      // Update the product
+      // TEMPORARY: Remove userId check for debugging
       const product = await Product.findOneAndUpdate(
-        { userId, _id: productId },
+        { _id: productId },  // Without userId for now
         updateData,
         { new: true }
       );
@@ -346,6 +346,7 @@ exports.addProduct = async (req, res) => {
       });
     }
   };
+  
   
   
 
