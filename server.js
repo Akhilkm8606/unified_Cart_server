@@ -16,9 +16,12 @@ const app = express();
 // Connect to the database
 connectDB();
 
+// Set your domain for CORS (replace with your actual client domain)
+const clientDomain = 'https://unified-cart-client-q6vg.vercel.app'; // Set your domain here
+
 // Set up CORS
 app.use(cors({
-  origin: 'https://unified-cart-client-q6vg.vercel.app',
+  origin: clientDomain,
   methods: 'GET,POST,PUT,DELETE',
   credentials: true,
 }));
@@ -30,7 +33,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Middleware to handle cookies
 app.use(cookieParser());
+
+// Setting up cookie security
+app.use((req, res, next) => {
+  res.cookie('myCookie', 'cookieValue', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Secure in production
+    sameSite: 'Lax' // Set to 'None' for cross-site cookie usage
+  });
+  next();
+});
+
+// Static file serving for uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Security headers
@@ -41,12 +57,13 @@ app.use(
       styleSrc: ["'self'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", clientDomain],
       scriptSrc: ["'self'"],
     },
   })
 );
 
+// JSON body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -55,11 +72,12 @@ const userRoutes = require("./routes/userRoute/user");
 const productRoutes = require("./routes/products/productRoutes");
 const orderRoute = require("./routes/order/orderRoutes");
 
-// Use routes
+// Use the imported routes
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", orderRoute);
 
+// Root endpoint for server testing
 app.get("/", (req, res) => {
   console.log("Root endpoint hit");
   res.send("Server is running");
@@ -73,6 +91,6 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}, connected to domain ${clientDomain}`));
 
 module.exports = app;
