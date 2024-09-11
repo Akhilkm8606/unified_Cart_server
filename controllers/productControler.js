@@ -395,6 +395,27 @@ exports.getProducts = async (req, res) => {
     }
 };
 
+
+exports.getSellerProducts = async (req, res) => {
+    try {
+        const sellerId = req.userId; // `userId` is set by the auth middleware
+
+        // Fetch products where `userId` matches
+        const products = await Product.find({ userId: sellerId });
+
+        res.status(200).json({
+            success: true,
+            products
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 // Get Single Product
 exports.getSingleProduct = async (req, res) => {
     try {

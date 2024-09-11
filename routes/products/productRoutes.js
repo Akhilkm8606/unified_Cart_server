@@ -17,7 +17,8 @@ const {
     removeFromCart,
     editCart,
     getCart,
-    addToCart
+    addToCart,
+    getSellerProducts
 } = require("../../controllers/productControler");
 const verifyToken = require("../../middlewear/auth");
 const { getAllProducts } = require("../../controllers/userContoller");
@@ -39,6 +40,7 @@ router.post("/product/edit/:id", upload.array('images'), uploadToCloudinary, upd
 router.delete("/product/:id", deleteProduct);
 router.get("/products", getAllProducts);
 router.get("/product/:id", getSingleProduct);
+router.get("/product/seller/:id", getSellerProducts);
 
 // Cart Routes
 router.post("/product/addCart/:id", verifyToken,addToCart);
