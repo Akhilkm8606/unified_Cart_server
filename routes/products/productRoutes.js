@@ -24,20 +24,20 @@ const verifyToken = require("../../middlewear/auth");
 const { getAllProducts, isAdminOrSeller } = require("../../controllers/userContoller");
 
 // Category Routes
-router.post("/category", addCategory);
+router.post("/category",isAdminOrSeller, addCategory);
 router.get("/categories", getCategory);
-router.put("/category/:id", updateCategory);
-router.delete("/category/:id", deletCategory);
+router.put("/category/:id",isAdminOrSeller, updateCategory);
+router.delete("/category/:id",isAdminOrSeller, deletCategory);
 
 // Review Routes
 router.post("/review/:id", verifyToken, addReview);
 router.get("/reviews/:id", getReview);
-router.delete("/review/:id", deleteReview);
+router.delete("/review/:id",isAdminOrSeller, deleteReview);
 
 // Product Routes
-router.post('/product/:id', upload.array('images'), uploadToCloudinary, addProduct);
-router.post("/product/edit/:id", upload.array('images'), uploadToCloudinary, updateProduct);
-router.delete("/product/:id", deleteProduct);
+router.post('/product/:id', upload.array('images'), uploadToCloudinary,isAdminOrSeller, addProduct);
+router.post("/product/edit/:id", upload.array('images'), uploadToCloudinary,isAdminOrSeller, updateProduct);
+router.delete("/product/:id",isAdminOrSeller, deleteProduct);
 router.get("/products", getAllProducts);
 router.get("/product/:id", getSingleProduct);
 router.get("/product/seller/:id",isAdminOrSeller, getSellerProducts);
