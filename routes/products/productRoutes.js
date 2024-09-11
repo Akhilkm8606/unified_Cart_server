@@ -40,7 +40,7 @@ router.post("/product/edit/:id", upload.array('images'), uploadToCloudinary,isAd
 router.delete("/product/:id",isAdminOrSeller, deleteProduct);
 router.get("/products", getAllProducts);
 router.get("/product/:id", getSingleProduct);
-router.get("/product/seller/:id",isAdminOrSeller, getSellerProducts);
+router.get("/seller/product/:id",isAdminOrSeller, getSellerProducts);
 
 // Cart Routes
 router.post("/product/addCart/:id", verifyToken,addToCart);
