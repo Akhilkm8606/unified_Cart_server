@@ -7,7 +7,6 @@ const Category = require("../model/categoryModel");
 
 
 const { hashpass, passwordIsMatch } = require('../utils/password');
-const { loggers } = require('winston');
 
 
 
@@ -241,22 +240,22 @@ exports.deletUser = async (req,res) =>{
 
 exports.isAdminOrSeller = async (req, res, next) => {
     const userId = req.userId; // Ensure that userId is coming from req.userId
-    loggers.info('Checking user role', { userId }); // Log the userId
+    logger.info('Checking user role', { userId }); // Use the correct logger instance
 
     try {
         const user = await User.findById(userId);
         if (!user) {
-            logger.error("User not found"); // Log the error
+            logger.error("User not found"); // Use the correct logger instance
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             });
         }
 
-        logger.info('User role', { role: user.role }); // Log user role for debugging
+        logger.info('User role', { role: user.role }); // Use the correct logger instance
 
         if (user.role !== 'admin' && user.role !== 'seller') {
-            logger.warn("User is neither an admin nor a seller"); // Log a warning
+            logger.warn("User is neither an admin nor a seller"); // Use the correct logger instance
             return res.status(403).json({
                 success: false,
                 message: "User is neither an admin nor a seller"
@@ -267,7 +266,7 @@ exports.isAdminOrSeller = async (req, res, next) => {
         next();
 
     } catch (error) {
-        logger.error('Error checking user role:', error); // Log the error
+        logger.error('Error checking user role:', error); // Use the correct logger instance
         res.status(500).json({
             success: false,
             message: "Error checking user role",
@@ -275,6 +274,7 @@ exports.isAdminOrSeller = async (req, res, next) => {
         });
     }
 };
+
 
 
 exports.getAllusers  = async (req,res) =>{
