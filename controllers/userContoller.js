@@ -239,42 +239,25 @@ exports.deletUser = async (req,res) =>{
 
 
 exports.isAdminOrSeller = async (req, res, next) => {
-    const userId = req.userId; // Ensure that userId is coming from req.userId
-    logger.info('Checking user role', { userId }); // Use the correct logger instance
-
+    const userId = req.userId;
     try {
         const user = await User.findById(userId);
-        if (!user) {
-            logger.error("User not found"); // Use the correct logger instance
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        logger.info('User role', { role: user.role }); // Use the correct logger instance
-
-        if (user.role !== 'admin' && user.role !== 'seller') {
-            logger.warn("User is neither an admin nor a seller"); // Use the correct logger instance
+        if (!user || (user.role !== 'admin' && user.role !== 'seller')) {
             return res.status(403).json({
                 success: false,
                 message: "User is neither an admin nor a seller"
             });
+        } else {
+            next();
         }
-
-        // If user is admin or seller, proceed
-        next();
-
     } catch (error) {
-        logger.error('Error checking user role:', error); // Use the correct logger instance
+        console.error(error);
         res.status(500).json({
             success: false,
-            message: "Error checking user role",
-            error: error.message
+            message: "Error checking user role"
         });
     }
 };
-
 
 
 exports.getAllusers  = async (req,res) =>{

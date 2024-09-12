@@ -7,23 +7,9 @@ const cookieParser = require('cookie-parser');
 const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
 const cloudinary = require('cloudinary').v2;
 const connectDB = require("./connection/db");
-const winston = require("winston");
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
-
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.Console(),  // Log to console (only in dev)
-    new winston.transports.File({ filename: 'error.log', level: 'error' }), // Log errors to error.log
-    new winston.transports.File({ filename: 'combined.log' }) // Log everything to combined.log
-  ],
-});
 
 const app = express();
 
