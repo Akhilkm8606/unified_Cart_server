@@ -7,6 +7,7 @@ const Category = require("../model/categoryModel");
 
 
 const { hashpass, passwordIsMatch } = require('../utils/password');
+const { loggers } = require('winston');
 
 
 
@@ -240,7 +241,7 @@ exports.deletUser = async (req,res) =>{
 
 exports.isAdminOrSeller = async (req, res, next) => {
     const userId = req.userId; // Ensure that userId is coming from req.userId
-    logger.info('Checking user role', { userId }); // Log the userId
+    loggers.info('Checking user role', { userId }); // Log the userId
 
     try {
         const user = await User.findById(userId);
