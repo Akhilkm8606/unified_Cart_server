@@ -376,36 +376,36 @@ exports.getAllProducts = async (req, res) => {
 exports.ensureSeller = async (req, res, next) => {
     const userId = req.userId;
     try {
-        const user = await User.findById(userId);
-        if (!user || user.role !== 'seller') {
-            return res.status(403).json({
-                success: false,
-                message: "User is not an seller"
-            });
-        }
-     else{
-        next();
-     }
-       
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: "Error checking admin status"
+      const user = await User.findById(userId);
+      if (!user || user.role !== 'seller') {
+        return res.status(403).json({
+          success: false,
+          message: "User is not a seller"
         });
-    }}
+      }
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Error checking seller status"
+      });
+    }
+  };
+
 
 
    
 
-exports.viewDashboard = async (req, res) => {
+
+  exports.viewDashboard = async (req, res) => {
     try {
       const userId = req.userId;
       console.log('Seller ID:', userId);
   
       // Fetch all products for the seller
       const products = await Product.find({ userId });
-      if (products.length === 0) {
+      if (!products.length) {
         return res.status(404).json({ success: false, message: 'No products found for this seller' });
       }
   
@@ -413,15 +413,11 @@ exports.viewDashboard = async (req, res) => {
       const productIds = products.map(product => product._id);
       console.log('Product IDs:', productIds);
   
-      // // Log the exact query
-      const query = { 'items.product': { $in: productIds } };
-      console.log('Order Query:', query);
-  
       // Find orders that contain any of the product IDs
-      const orders = await Order.find(query);
+      const orders = await Order.find({ 'items.product': { $in: productIds } });
       console.log('Orders:', orders);
   
-      if (orders.length === 0) {
+      if (!orders.length) {
         return res.status(404).json({ success: false, message: 'No orders found for this seller' });
       }
   
@@ -429,11 +425,10 @@ exports.viewDashboard = async (req, res) => {
       return res.status(200).json({
         success: true,
         dashboard: {
-            orderCount: orders.length,
+          orderCount: orders.length,
           productCount: products.length,
           products,
           orders,
-          
         },
       });
     } catch (error) {
