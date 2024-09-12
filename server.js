@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const path = require('path');
 const cors = require('cors');
+const winston = require('winston');
 const cookieParser = require('cookie-parser');
 const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
 const cloudinary = require('cloudinary').v2;
@@ -42,6 +43,20 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.json()
+  ),
+  transports: [
+      new winston.transports.Console(),  // Log to console (only in dev)
+      new winston.transports.File({ filename: 'error.log', level: 'error' }), // Log errors to error.log
+      new winston.transports.File({ filename: 'combined.log' }) // Log everything to combined.log
+  ],
+});
+
 
 // Static file serving for uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
