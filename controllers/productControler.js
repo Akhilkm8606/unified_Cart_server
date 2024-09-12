@@ -394,14 +394,15 @@ exports.getProducts = async (req, res) => {
         });
     }
 };
-
-
 exports.getSellerProducts = async (req, res) => {
     try {
         const sellerId = req.userId; // `userId` is set by the auth middleware
+        console.log('Seller ID:', sellerId); // Log the sellerId to ensure it's correct
 
         // Fetch products where `userId` matches
         const products = await Product.find({ userId: sellerId });
+
+        console.log('Products:', products); // Log the products fetched to see the results
 
         res.status(200).json({
             success: true,
@@ -415,6 +416,7 @@ exports.getSellerProducts = async (req, res) => {
         });
     }
 };
+
 
 // Get Single Product
 exports.getSingleProduct = async (req, res) => {
