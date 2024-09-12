@@ -3,19 +3,13 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const path = require('path');
 const cors = require('cors');
-const winston = require('winston');
-const cookieParser = require('cookie-parser');  
-const { getToken } = require('../utils/jwtToken');
-const User = require('../model/user');
-const Product = require('../model/product');
-const Order = require('../model/order');
-const Category = require("../model/categoryModel");
-const { hashpass, passwordIsMatch } = require('../utils/password');
+const cookieParser = require('cookie-parser');
+const { upload, uploadToCloudinary } = require('./middlewear/fileUplod');
+const cloudinary = require('cloudinary').v2;
+const connectDB = require("./connection/db");
 
-// Initialize dotenv to access environment variables
+// Load environment variables
 dotenv.config({ path: path.resolve(__dirname, 'confiq', 'confiq.env') });
-
-// Initialize the logger at the top
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -29,40 +23,51 @@ const logger = winston.createLogger({
   ],
 });
 
-// Initialize the app
 const app = express();
 
 // Connect to the database
-const connectDB = require("./connection/db");
 connectDB();
 
 // Set up CORS
 app.use(cors({
-  origin: 'https://unified-cart-client-q6vg.vercel.app',
+  origin: 'https://unified-cart-client-q6vg.vercel.app', // Your frontend URL
   methods: 'GET,POST,PUT,DELETE',
-  credentials: true
+  credentials: true // Allow credentials like cookies
 }));
 
 // Configure Cloudinary
-const cloudinary = require('cloudinary').v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Middleware for cookies
+// Middleware to handle cookies
 app.use(cookieParser());
 
 // Setting up cookie security
 app.use((req, res, next) => {
   res.cookie('myCookie', 'cookieValue', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Lax'
+    secure: process.env.NODE_ENV === 'production', // Secure in production
+    sameSite: 'Lax' // Set to 'None' for cross-site cookie usage
   });
   next();
 });
+
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.Console(),  // Log to console (only in dev)
+        new winston.transports.File({ filename: 'error.log', level: 'error' }), // Log errors to error.log
+        new winston.transports.File({ filename: 'combined.log' }) // Log everything to combined.log
+    ],
+});
+
 
 // Static file serving for uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -90,6 +95,7 @@ app.use(express.urlencoded({ extended: true }));
 const userRoutes = require("./routes/userRoute/user");
 const productRoutes = require("./routes/products/productRoutes");
 const orderRoute = require("./routes/order/orderRoutes");
+const winston = require("winston/lib/winston/config");
 
 // Use the imported routes
 app.use("/api/v1", userRoutes);
@@ -104,7 +110,7 @@ app.get("/", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error(err.stack); // Use logger for logging errors
+  console.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
