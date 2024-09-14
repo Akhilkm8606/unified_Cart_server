@@ -396,11 +396,9 @@ exports.ensureSeller = async (req, res, next) => {
 
 
    
-
-
   exports.viewDashboard = async (req, res) => {
     try {
-      const userId = req.userId;
+      const userId = req.params.sellerId; // Use sellerId from the URL params
       console.log('Seller ID:', userId);
   
       // Fetch all products for the seller
@@ -436,3 +434,4 @@ exports.ensureSeller = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
+  
