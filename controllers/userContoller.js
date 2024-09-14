@@ -406,8 +406,18 @@ exports.ensureAdmin = async (req, res, next) => {
 
    
 
-
-exports.viewDashboard = async (req, res) => {
+  const getUserCount = async () => {
+    try {
+      // Fetch the total count of users
+      const userCount = await User.countDocuments();
+      return userCount;
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+      throw new Error('Internal server error');
+    }
+  };
+  
+  exports.viewDashboard = async (req, res) => {
     try {
       const userId = req.params.id;  // Use the correct parameter name 'id'
       console.log('Seller ID:', userId);
@@ -424,7 +434,13 @@ exports.viewDashboard = async (req, res) => {
       const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
       console.log('Orders:', orders);
   
-      // Respond with products and their related orders
+      // Get user count (if needed for admin role)
+      let userCount = 0;
+      if (req.user.role === 'admin') {
+        userCount = await getUserCount();
+      }
+  
+      // Respond with products, orders, and user count (if admin)
       return res.status(200).json({
         success: true,
         dashboard: {
@@ -432,6 +448,7 @@ exports.viewDashboard = async (req, res) => {
           productCount: products.length,
           products: products.length > 0 ? products : [], // Ensure products is an array
           orders: orders.length > 0 ? orders : [], // Ensure orders is an array
+          userCount: req.user.role === 'admin' ? userCount : undefined, // Include userCount only for admin
         },
       });
     } catch (error) {
@@ -439,4 +456,5 @@ exports.viewDashboard = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
+  
   
