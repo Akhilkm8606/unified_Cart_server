@@ -438,8 +438,8 @@ exports.ensureSeller = async (req, res, next) => {
 
   exports.viewDashboard = async (req, res) => {
     try {
-      const userId = req.params.userId;
-      console.log('Seller ID:', userId);
+        const userId = req.params.id;  // Use the correct parameter name 'id'
+        console.log('Seller ID:', userId);
   
       // Fetch all products for the seller
       const products = await Product.find({ userId });
