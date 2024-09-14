@@ -284,34 +284,28 @@ exports.addProduct = async (req, res) => {
   
       const { name, categoryId, price, description, quantity, features, reviews } = req.body;
   
-      // Validate required fields
-      if (!name || !categoryId || !price || !description || !quantity || !features) {
-        return res.status(400).json({
-          success: false,
-          message: "All fields (name, category, price, description, quantity, and features) are required"
-        });
-      }
-  
-      // Ensure the category exists
-      const category = await Category.findById(categoryId);
-      if (!category) {
-        return res.status(404).json({
-          success: false,
-          message: "Category not found"
-        });
-      }
-  
       // Prepare update data
-      const updateData = {
-        name,
-        categoryId,
-        category: category.name,
-        price,
-        description,
-        quantity,
-        features,
-        reviews: reviews || [], // If reviews are not mandatory
-      };
+      const updateData = {};
+  
+      // Only add the fields that are present in the request body
+      if (name) updateData.name = name;
+      if (categoryId) {
+        // Ensure the category exists
+        const category = await Category.findById(categoryId);
+        if (!category) {
+          return res.status(404).json({
+            success: false,
+            message: "Category not found"
+          });
+        }
+        updateData.categoryId = categoryId;
+        updateData.category = category.name; // Optionally update the category name as well
+      }
+      if (price) updateData.price = price;
+      if (description) updateData.description = description;
+      if (quantity) updateData.quantity = quantity;
+      if (features) updateData.features = features;
+      if (reviews) updateData.reviews = reviews;
   
       // Add images to updateData only if new images are provided
       if (images.length > 0) {
@@ -322,7 +316,7 @@ exports.addProduct = async (req, res) => {
       const product = await Product.findOneAndUpdate(
         { _id: productId },  // Without userId for now
         updateData,
-        { new: true }
+        { new: true } // This ensures the updated document is returned
       );
   
       if (!product) {
