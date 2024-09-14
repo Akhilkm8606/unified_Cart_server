@@ -436,28 +436,22 @@ exports.ensureSeller = async (req, res, next) => {
 //   };
   
 
-  exports.viewDashboard = async (req, res) => {
+exports.viewDashboard = async (req, res) => {
     try {
-        const userId = req.params.id;  // Use the correct parameter name 'id'
-        console.log('Seller ID:', userId);
+      const userId = req.params.id;  // Use the correct parameter name 'id'
+      console.log('Seller ID:', userId);
   
       // Fetch all products for the seller
       const products = await Product.find({ userId });
-      if (!products.length) {
-        return res.status(404).json({ success: false, message: 'No products found for this seller' });
-      }
+      console.log('Products:', products);
   
       // Get an array of product IDs
       const productIds = products.map(product => product._id);
       console.log('Product IDs:', productIds);
   
       // Find orders that contain any of the product IDs
-      const orders = await Order.find({ 'items.product': { $in: productIds } });
+      const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
       console.log('Orders:', orders);
-  
-      if (!orders.length) {
-        return res.status(404).json({ success: false, message: 'No orders found for this seller' });
-      }
   
       // Respond with products and their related orders
       return res.status(200).json({
@@ -465,8 +459,8 @@ exports.ensureSeller = async (req, res, next) => {
         dashboard: {
           orderCount: orders.length,
           productCount: products.length,
-          products,
-          orders,
+          products: products.length > 0 ? products : [], // Ensure products is an array
+          orders: orders.length > 0 ? orders : [], // Ensure orders is an array
         },
       });
     } catch (error) {
@@ -474,3 +468,4 @@ exports.ensureSeller = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
+  
