@@ -1,5 +1,5 @@
 const express = require("express");
-const { getUser, userRegister, userLogin, updateUser, deletUser,  getAllusers, getAllSellers, getUserById, ensureSeller, viewDashboard, check, isAdminOrSeller } = require("../../controllers/userContoller");
+const { getUser, userRegister, userLogin, updateUser, deletUser,  getAllusers, getAllSellers, getUserById, ensureSeller, viewDashboard, check, isAdminOrSeller, ensureAdmin } = require("../../controllers/userContoller");
 const { getToken } = require("../../utils/jwtToken");
 const verifyToken = require("../../middlewear/auth");
 
@@ -22,7 +22,7 @@ routes.route("/userDetails/:id").get(verifyToken,getUserById)
 routes.route("/users").get(verifyToken,isAdminOrSeller, getAllusers);
 routes.route("/Users/update/:id").put(verifyToken,isAdminOrSeller,updateUser).delete(verifyToken,isAdminOrSeller,deletUser)
 routes.route("/User/:id").delete(verifyToken,isAdminOrSeller,deletUser)
-// routes.get('/viewDashboard/:id', verifyToken, ensureSeller, viewDashboard);
-routes.get('/viewDashboard/:id', verifyToken, isAdminOrSeller, viewDashboard);
+routes.get('/viewDashboard/:id', verifyToken, ensureSeller, viewDashboard);
+routes.get('/viewAdminDashboard/:id', verifyToken, ensureAdmin, viewDashboard);
 module.exports = routes
 
