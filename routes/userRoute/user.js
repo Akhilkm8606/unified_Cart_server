@@ -23,5 +23,6 @@ routes.route("/users").get(verifyToken,isAdminOrSeller, getAllusers);
 routes.route("/Users/update/:id").put(verifyToken,isAdminOrSeller,updateUser).delete(verifyToken,isAdminOrSeller,deletUser)
 routes.route("/User/:id").delete(verifyToken,isAdminOrSeller,deletUser)
 routes.get('/viewDashboard/:id', verifyToken, ensureSeller, viewDashboard);
+routes.get('/viewAdminDashboard/:id', verifyToken, isAdminOrSeller, viewDashboard);
 module.exports = routes
 
