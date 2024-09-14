@@ -228,19 +228,27 @@ exports.deletUser = async (req,res) =>{
 
 
 
-exports.isAdminOrSeller = (req, res, next) => {
-    const user = req.user; // Use req.user populated by verifyToken
-  
-    if (!user || (user.role !== 'admin' && user.role !== 'seller')) {
-      return res.status(403).json({
-        success: false,
-        message: "User is neither an admin nor a seller",
-      });
+exports.isAdminOrSeller = async (req, res, next) => {
+    const userId = req.userId;
+    try {
+        const user = await User.findById(userId);
+        if (!user || (user.role !== 'admin' && user.role !== 'seller')) {
+            return res.status(403).json({
+                success: false,
+                message: "User is neither an admin nor a seller"
+            });
+        } else {
+            next();
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Error checking user role"
+        });
     }
-    
-    next(); // Proceed to the next middleware if user is admin or seller
-  };
-  
+};
+
 
 exports.getAllusers  = async (req,res) =>{
     try {
@@ -354,7 +362,6 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
-
 // seller
 exports.ensureSeller = async (req, res, next) => {
     const userId = req.userId;
@@ -375,7 +382,7 @@ exports.ensureSeller = async (req, res, next) => {
       });
     }
   };
-  exports.ensureAdmin = async (req, res, next) => {
+exports.ensureAdmin = async (req, res, next) => {
     const userId = req.userId;
     try {
       const user = await User.findById(userId);
@@ -396,59 +403,40 @@ exports.ensureSeller = async (req, res, next) => {
   };
 
 
+
    
-  exports.viewDashboard = async (req, res) => {
+
+
+exports.viewDashboard = async (req, res) => {
     try {
-      
+      const userId = req.params.id;  // Use the correct parameter name 'id'
+      console.log('Seller ID:', userId);
   
-      const userId = req.params.id; // Get authenticated user ID from req.user
-      const role = req.user.role; // Get user role from req.user
-      console.log('User ID:', userId, 'Role:', role);
+      // Fetch all products for the seller
+      const products = await Product.find({ userId });
+      console.log('Products:', products);
   
-      if (role === 'admin') {
-        // Fetch all users, products, and orders for admin
-        const users = await User.find();
-        const products = await Product.find();
-        const orders = await Order.find();
+      // Get an array of product IDs
+      const productIds = products.map(product => product._id);
+      console.log('Product IDs:', productIds);
   
-        return res.status(200).json({
-          success: true,
-          dashboard: {
-            userCount: users.length,
-            productCount: products.length,
-            orderCount: orders.length,
-            users: users.length > 0 ? users : [],
-            products: products.length > 0 ? products : [],
-            orders: orders.length > 0 ? orders : [],
-          },
-        });
-      } else if (role === 'seller') {
-        // Fetch seller's products and related orders
-        const products = await Product.find({ userId });
-        console.log('Products:', products);
+      // Find orders that contain any of the product IDs
+      const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
+      console.log('Orders:', orders);
   
-        const productIds = products.map(product => product._id);
-        console.log('Product IDs:', productIds);
-  
-        const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
-        console.log('Orders:', orders);
-  
-        return res.status(200).json({
-          success: true,
-          dashboard: {
-            orderCount: orders.length,
-            productCount: products.length,
-            products: products.length > 0 ? products : [],
-            orders: orders.length > 0 ? orders : [],
-          },
-        });
-      } else {
-        return res.status(403).json({ success: false, message: 'Access denied' });
-      }
+      // Respond with products and their related orders
+      return res.status(200).json({
+        success: true,
+        dashboard: {
+          orderCount: orders.length,
+          productCount: products.length,
+          products: products.length > 0 ? products : [], // Ensure products is an array
+          orders: orders.length > 0 ? orders : [], // Ensure orders is an array
+        },
+      });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching seller dashboard data:', error);
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
-  
   
