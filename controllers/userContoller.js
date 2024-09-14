@@ -444,11 +444,12 @@ exports.ensureAdmin = async (req, res, next) => {
       return res.status(200).json({
         success: true,
         dashboard: {
+            userCount: req.user.role === 'admin' ? userCount : undefined, // Include userCount only for admin
+
           orderCount: orders.length,
           productCount: products.length,
           products: products.length > 0 ? products : [], // Ensure products is an array
           orders: orders.length > 0 ? orders : [], // Ensure orders is an array
-          userCount: req.user.role === 'admin' ? userCount : undefined, // Include userCount only for admin
         },
       });
     } catch (error) {
