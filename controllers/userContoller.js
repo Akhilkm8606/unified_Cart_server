@@ -407,7 +407,7 @@ exports.ensureAdmin = async (req, res, next) => {
    
 
 
-  exports.viewDashboard = async (req, res) => {
+exports.viewDashboard = async (req, res) => {
     try {
       const userId = req.params.id;  // Use the correct parameter name 'id'
       console.log('Seller ID:', userId);
@@ -424,13 +424,7 @@ exports.ensureAdmin = async (req, res, next) => {
       const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
       console.log('Orders:', orders);
   
-      // Get user count (if needed for admin role)
-      let userCount = 0;
-      if (req.user.role === 'admin') {
-        userCount = await getUserCount();
-      }
-  
-      // Respond with products, orders, and user count (if admin)
+      // Respond with products and their related orders
       return res.status(200).json({
         success: true,
         dashboard: {
@@ -438,7 +432,6 @@ exports.ensureAdmin = async (req, res, next) => {
           productCount: products.length,
           products: products.length > 0 ? products : [], // Ensure products is an array
           orders: orders.length > 0 ? orders : [], // Ensure orders is an array
-          userCount: req.user.role === 'admin' ? userCount : undefined, // Include userCount only for admin
         },
       });
     } catch (error) {
@@ -446,5 +439,4 @@ exports.ensureAdmin = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
-  
   
