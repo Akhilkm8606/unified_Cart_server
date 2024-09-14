@@ -397,63 +397,60 @@ exports.ensureSeller = async (req, res, next) => {
 
 
    
-
-
-
-exports.viewDashboard = async (req, res) => {
-  try {
-    const userId = req.user._id; // Get authenticated user ID from req.user
-    const role = req.user.role; // Get user role from req.user
-    console.log('User ID:', userId, 'Role:', role);
-
-    if (role === 'admin') {
-      // If the user is an admin, fetch all users, products, and orders
-      const users = await User.find(); // Fetch all users
-      const products = await Product.find(); // Fetch all products
-      const orders = await Order.find(); // Fetch all orders
-
-      return res.status(200).json({
-        success: true,
-        dashboard: {
-          userCount: users.length,
-          productCount: products.length,
-          orderCount: orders.length,
-          users: users.length > 0 ? users : [],
-          products: products.length > 0 ? products : [],
-          orders: orders.length > 0 ? orders : [],
-        },
-      });
-    } else if (role === 'seller') {
-      // If the user is a seller, fetch their products and related orders
-      const products = await Product.find({ userId }); // Fetch products for this seller
-      console.log('Products:', products);
-
-      // Get an array of product IDs
-      const productIds = products.map(product => product._id);
-      console.log('Product IDs:', productIds);
-
-      // Find orders that contain any of the product IDs
-      const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
-      console.log('Orders:', orders);
-
-      // Respond with products and their related orders
-      return res.status(200).json({
-        success: true,
-        dashboard: {
-          orderCount: orders.length,
-          productCount: products.length,
-          products: products.length > 0 ? products : [],
-          orders: orders.length > 0 ? orders : [],
-        },
-      });
-    } else {
-      // If the user is neither an admin nor a seller, deny access
-      return res.status(403).json({ success: false, message: 'Access denied' });
+  exports.viewDashboard = async (req, res) => {
+    try {
+      if (!req.user || !req.user._id || !req.user.role) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. User information is missing.' });
+      }
+  
+      const userId = req.user._id; // Get authenticated user ID from req.user
+      const role = req.user.role; // Get user role from req.user
+      console.log('User ID:', userId, 'Role:', role);
+  
+      if (role === 'admin') {
+        // Fetch all users, products, and orders for admin
+        const users = await User.find();
+        const products = await Product.find();
+        const orders = await Order.find();
+  
+        return res.status(200).json({
+          success: true,
+          dashboard: {
+            userCount: users.length,
+            productCount: products.length,
+            orderCount: orders.length,
+            users: users.length > 0 ? users : [],
+            products: products.length > 0 ? products : [],
+            orders: orders.length > 0 ? orders : [],
+          },
+        });
+      } else if (role === 'seller') {
+        // Fetch seller's products and related orders
+        const products = await Product.find({ userId });
+        console.log('Products:', products);
+  
+        const productIds = products.map(product => product._id);
+        console.log('Product IDs:', productIds);
+  
+        const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
+        console.log('Orders:', orders);
+  
+        return res.status(200).json({
+          success: true,
+          dashboard: {
+            orderCount: orders.length,
+            productCount: products.length,
+            products: products.length > 0 ? products : [],
+            orders: orders.length > 0 ? orders : [],
+          },
+        });
+      } else {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
     }
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-};
-
+  };
+  
   
