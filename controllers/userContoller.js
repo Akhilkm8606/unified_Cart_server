@@ -396,9 +396,49 @@ exports.ensureSeller = async (req, res, next) => {
 
 
    
+//   exports.viewDashboard = async (req, res) => {
+//     try {
+//       const userId = req.params.sellerId; // Use sellerId from the URL params
+//       console.log('Seller ID:', userId);
+  
+//       // Fetch all products for the seller
+//       const products = await Product.find({ userId });
+//       if (!products.length) {
+//         return res.status(404).json({ success: false, message: 'No products found for this seller' });
+//       }
+  
+//       // Get an array of product IDs
+//       const productIds = products.map(product => product._id);
+//       console.log('Product IDs:', productIds);
+  
+//       // Find orders that contain any of the product IDs
+//       const orders = await Order.find({ 'items.product': { $in: productIds } });
+//       console.log('Orders:', orders);
+  
+//       if (!orders.length) {
+//         return res.status(404).json({ success: false, message: 'No orders found for this seller' });
+//       }
+  
+//       // Respond with products and their related orders
+//       return res.status(200).json({
+//         success: true,
+//         dashboard: {
+//           orderCount: orders.length,
+//           productCount: products.length,
+//           products,
+//           orders,
+//         },
+//       });
+//     } catch (error) {
+//       console.error('Error fetching seller dashboard data:', error);
+//       return res.status(500).json({ success: false, message: 'Internal server error' });
+//     }
+//   };
+  
+
   exports.viewDashboard = async (req, res) => {
     try {
-      const userId = req.params.sellerId; // Use sellerId from the URL params
+      const userId = req.params.userId;
       console.log('Seller ID:', userId);
   
       // Fetch all products for the seller
@@ -434,4 +474,3 @@ exports.ensureSeller = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
-  
