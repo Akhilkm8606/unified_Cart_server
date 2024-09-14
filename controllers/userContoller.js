@@ -399,11 +399,9 @@ exports.ensureSeller = async (req, res, next) => {
    
   exports.viewDashboard = async (req, res) => {
     try {
-      if (!req.user || !req.user._id || !req.user.role) {
-        return res.status(401).json({ success: false, message: 'Unauthorized. User information is missing.' });
-      }
+      
   
-      const userId = req.user._id; // Get authenticated user ID from req.user
+      const userId = req.params.id; // Get authenticated user ID from req.user
       const role = req.user.role; // Get user role from req.user
       console.log('User ID:', userId, 'Role:', role);
   
