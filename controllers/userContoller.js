@@ -155,6 +155,8 @@ exports.getUserById = async (req,res) =>{
   
 
 }
+
+
 exports.updateUser = async (req,res) =>{
     const userId = req.params.id
     
@@ -173,21 +175,11 @@ exports.updateUser = async (req,res) =>{
         }
 
 
-        if (name) {
-            user.username = name;
-        }
-        if (email) {
-            user.email = email;
-        }
-        if (phone) {
-            user.phone = phone;
-        }
-        if (status) {
-            user.status = status;
-        }
-        if (role) {
-            user.role = role;
-        }
+        if (name) user.username = name;
+if (email) user.email = email;
+if (phone) user.phone = phone;
+if (status) user.status = status;
+if (role) user.role = role;
 
  
         await user.save()
@@ -206,8 +198,6 @@ exports.updateUser = async (req,res) =>{
   
 
 }
-
-
 exports.deletUser = async (req,res) =>{
     const userId = req.params.id;
     console.log(userId);
@@ -438,34 +428,58 @@ exports.ensureSeller = async (req, res, next) => {
 
 exports.viewDashboard = async (req, res) => {
     try {
-      const userId = req.params.id;  // Use the correct parameter name 'id'
-      console.log('Seller ID:', userId);
+      const userId = req.user._id; // Assume the authenticated user's ID is stored in req.user
+      const role = req.user.role; // Assume the authenticated user's role is stored in req.user
+      console.log('User ID:', userId, 'Role:', role);
   
-      // Fetch all products for the seller
-      const products = await Product.find({ userId });
-      console.log('Products:', products);
+      if (role === 'admin') {
+        // If the user is an admin, fetch all users, products, and orders
+        const users = await User.find(); // Fetch all users
+        const products = await Product.find(); // Fetch all products
+        const orders = await Order.find(); // Fetch all orders
   
-      // Get an array of product IDs
-      const productIds = products.map(product => product._id);
-      console.log('Product IDs:', productIds);
+        return res.status(200).json({
+          success: true,
+          dashboard: {
+            userCount: users.length,
+            productCount: products.length,
+            orderCount: orders.length,
+            users: users.length > 0 ? users : [],
+            products: products.length > 0 ? products : [],
+            orders: orders.length > 0 ? orders : [],
+          },
+        });
+      } else if (role === 'seller') {
+        // If the user is a seller, fetch their products and related orders
+        const products = await Product.find({ userId }); // Fetch products for this seller
+        console.log('Products:', products);
   
-      // Find orders that contain any of the product IDs
-      const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
-      console.log('Orders:', orders);
+        // Get an array of product IDs
+        const productIds = products.map(product => product._id);
+        console.log('Product IDs:', productIds);
   
-      // Respond with products and their related orders
-      return res.status(200).json({
-        success: true,
-        dashboard: {
-          orderCount: orders.length,
-          productCount: products.length,
-          products: products.length > 0 ? products : [], // Ensure products is an array
-          orders: orders.length > 0 ? orders : [], // Ensure orders is an array
-        },
-      });
+        // Find orders that contain any of the product IDs
+        const orders = productIds.length > 0 ? await Order.find({ 'items.product': { $in: productIds } }) : [];
+        console.log('Orders:', orders);
+  
+        // Respond with products and their related orders
+        return res.status(200).json({
+          success: true,
+          dashboard: {
+            orderCount: orders.length,
+            productCount: products.length,
+            products: products.length > 0 ? products : [],
+            orders: orders.length > 0 ? orders : [],
+          },
+        });
+      } else {
+        // If the user is neither an admin nor a seller, deny access
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
     } catch (error) {
-      console.error('Error fetching seller dashboard data:', error);
+      console.error('Error fetching dashboard data:', error);
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
+  
   
