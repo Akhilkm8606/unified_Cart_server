@@ -91,12 +91,24 @@ exports. paymentVerification = async (req, res) => {
 // Get all orders
 exports.getAllOrders = async (req, res) => {
     try {
+        // Fetch all orders from the database
         const orders = await Order.find();
-        res.status(200).json({ success: true, orders });
+        
+        // Respond with success status, the count of orders, and the orders themselves
+        res.status(200).json({
+            success: true,
+            count: orders.length, // Number of orders
+            orders: orders // Array of orders
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        // Respond with error status and message in case of failure
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
+
 
 // Get order by ID
 exports.getownOrders = async (req, res) => {
