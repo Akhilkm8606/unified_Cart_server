@@ -382,25 +382,7 @@ exports.ensureSeller = async (req, res, next) => {
       });
     }
   };
-exports.ensureAdmin = async (req, res, next) => {
-    const userId = req.userId;
-    try {
-      const user = await User.findById(userId);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: "User is not a admin"
-        });
-      }
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        success: false,
-        message: "Error checking admin status"
-      });
-    }
-  };
+
 
 
 
