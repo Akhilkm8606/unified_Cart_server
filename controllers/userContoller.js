@@ -42,19 +42,16 @@ exports.userRegister = async (req, res) => {
                 success: false,
                 message: "User registration failed"
             });
-            
         }
+
+        // Exclude password from response
+        const { password: _, ...userWithoutPassword } = user._doc;
 
         res.status(201).json({
             success: true,
             message: "Registration successful!",
             isAuthenticated: true,
-            user: {
-                username: user.username,
-                email: user.email,
-                phone: user.phone,
-                address: user.address,
-            }
+            user: userWithoutPassword // Return user details without password
         });
     } catch (error) {
         console.error(error);
@@ -65,13 +62,14 @@ exports.userRegister = async (req, res) => {
     }
 };
 
-exports.userLogin = async (req, res,next) => {
+
+
+
+exports.userLogin = async (req, res, next) => {
     const { email, password } = req.body;
     try {
-        
         const user = await User.findOne({ email });
         
-       
         if (!user) {
             return res.status(400).json({
                 success: false,
@@ -79,47 +77,48 @@ exports.userLogin = async (req, res,next) => {
             });
         }
 
-        const passwordMatch = await passwordIsMatch(password, user.password)
+        const passwordMatch = await passwordIsMatch(password, user.password);
         if (!passwordMatch) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid credentials"
             });
         }
-        req.user= user;
-        getToken(req,res,next) 
-        // res.status(200).json({
-        //     success: true,
-          
-        //     message: "Login successfully completed!"
-        // });
+
+        // Exclude password from response
+        const { password: _, ...userWithoutPassword } = user._doc;
+
+        req.user = userWithoutPassword; // Assign the user without the password to req.user
+        getToken(req, res, next); // Assuming getToken handles token creation and response
         
     } catch (error) {
         console.error(error);
-
         res.status(500).json({
             success: false,
             message: "Login failed"
-        }); 
+        });
     }
-}
+};
 
-exports.getUser = async (req,res) =>{
+
+exports.getUser = async (req, res) => {
     const userId = req.userId;
-   
 
     try {
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
         if (!user) {
             return res.status(400).json({
                 success: false,
-                message: "User not found",
+                message: "User not found"
             });
         }
-        console.log(user);
+
+        // Exclude password from response
+        const { password: _, ...userWithoutPassword } = user._doc;
+
         return res.status(200).json({
             success: true,
-            user: user
+            user: userWithoutPassword
         });
     } catch (error) {
         return res.status(500).json({
@@ -127,9 +126,8 @@ exports.getUser = async (req,res) =>{
             message: error.message,
         });
     }
-  
+};
 
-}
 exports.getUserById = async (req,res) =>{
     const userId = req.params.id   
 
@@ -157,37 +155,35 @@ exports.getUserById = async (req,res) =>{
 }
 
 
-exports.updateUser = async (req,res) =>{
-    const userId = req.params.id
-    
-   
- const { name,email,phone,status,role } = req.body;
+exports.updateUser = async (req, res) => {
+    const userId = req.params.id;
+    const { name, email, phone, status, role } = req.body;
 
     try {
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
        
         if (!user) {
-            console.log(error);
             return res.status(400).json({
                 success: false,
-                message: "user not found",
+                message: "User not found"
             });
         }
 
-
         if (name) user.username = name;
-if (email) user.email = email;
-if (phone) user.phone = phone;
-if (status) user.status = status;
-if (role) user.role = role;
+        if (email) user.email = email;
+        if (phone) user.phone = phone;
+        if (status) user.status = status;
+        if (role) user.role = role;
 
- 
-        await user.save()
-       
+        await user.save();
+
+        // Exclude password from response
+        const { password: _, ...userWithoutPassword } = user._doc;
+
         return res.status(200).json({
             success: true,
-            message:"user details updated successfully!",
-            user
+            message: "User details updated successfully!",
+            user: userWithoutPassword
         });
     } catch (error) {
         return res.status(500).json({
@@ -195,9 +191,8 @@ if (role) user.role = role;
             message: error.message,
         });
     }
-  
+};
 
-}
 exports.deletUser = async (req,res) =>{
     const userId = req.params.id;
     console.log(userId);
