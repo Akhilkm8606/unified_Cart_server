@@ -17,19 +17,14 @@ const app = express();
 connectDB();
 
 // Set up CORS with proper headers
-app.use(cors({
-  origin: 'https://unified-cart-client-q6vg.vercel.app', // Your frontend URL
+const corsOptions = {
+  origin: 'https://unified-cart-client-q6vg.vercel.app', // Frontend URL
   methods: 'GET,POST,PUT,DELETE',
-  credentials: true, // Allow credentials like cookies
-  allowedHeaders: 'Content-Type,Authorization'
-}));
+  credentials: true, // Allow credentials (cookies)
+  allowedHeaders: ['Content-Type', 'Authorization'] // Ensure custom headers like Content-Type and Authorization are allowed
+};
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
+app.use(cors(corsOptions)); // Apply CORS before all routes
 
 // Middleware to handle cookies
 app.use(cookieParser());
@@ -55,6 +50,13 @@ app.use(express.urlencoded({ limit: '50mb', extended: true })); // URL-encoded d
 
 // Static file serving for uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Routes
 const userRoutes = require("./routes/userRoute/user");
