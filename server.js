@@ -16,11 +16,12 @@ const app = express();
 // Connect to the database
 connectDB();
 
-// Set up CORS
+// Set up CORS with proper headers
 app.use(cors({
   origin: 'https://unified-cart-client-q6vg.vercel.app', // Your frontend URL
   methods: 'GET,POST,PUT,DELETE',
-  credentials: true // Allow credentials like cookies
+  credentials: true, // Allow credentials like cookies
+  allowedHeaders: 'Content-Type,Authorization'
 }));
 
 // Configure Cloudinary
@@ -33,23 +34,10 @@ cloudinary.config({
 // Middleware to handle cookies
 app.use(cookieParser());
 
-// Setting up cookie security
-app.use((req, res, next) => {
-  res.cookie('myCookie', 'cookieValue', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Secure in production
-    sameSite: 'Lax' // Set to 'None' for cross-site cookie usage
-  });
-  next();
-});
-
-// Static file serving for uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Security headers using Helmet
+// Set security headers with Helmet
 app.use(helmet());
 
-// Set Content Security Policy (CSP)
+// Content Security Policy (CSP)
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
@@ -61,16 +49,18 @@ app.use(helmet.contentSecurityPolicy({
   },
 }));
 
-// JSON body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Increase request body size limits to prevent "Payload Too Large" errors
+app.use(express.json({ limit: '50mb' })); // JSON body limit
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // URL-encoded data limit
 
-// Import routes
+// Static file serving for uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Routes
 const userRoutes = require("./routes/userRoute/user");
 const productRoutes = require("./routes/products/productRoutes");
 const orderRoute = require("./routes/order/orderRoutes");
 
-// Use the imported routes
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", orderRoute);
