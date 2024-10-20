@@ -104,43 +104,7 @@ exports.deletCategory = async (req, res) => {
 };
 
 // Add Review
-// exports.addReview = async (req, res) => {
-//     try {
-//         const userId = req.userId;
-//         const reviewData = req.body;
-//         const productId = req.params.id;
 
-//         const product = await Product.findById(productId);
-//         const user = await User.findById(userId);
-
-//         if (!product) {
-//             return res.status(404).json({ success: false, message: "Product not found" });
-//         }
-
-//         const review = {
-//             ...reviewData,
-//             username: user.username
-//         };
-
-//         product.reviews.push(review);
-//         await product.save();
-
-//         const validReviews = product.reviews.filter(review => review.rating !== undefined);
-//         let overallRating = 0;
-//         if (validReviews.length > 0) {
-//             const totalRating = validReviews.reduce((acc, review) => acc + review.rating, 0);
-//             overallRating = totalRating / validReviews.length;
-//         }
-
-//         product.rating = overallRating;
-//         await product.save();
-
-//         res.status(200).json({ success: true, message: "Review added successfully", product });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ success: false, message: "Internal server error" });
-//     }
-// };
 exports.addReview = async (req, res) => {
     try {
         const userId = req.userId; // Get user ID from the request (auth middleware)
