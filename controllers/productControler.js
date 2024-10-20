@@ -7,6 +7,8 @@ const { upload, uploadToCloudinary } = require("../middlewear/fileUplod");
 const User = require("../model/user");
 const Cart = require('../model/cart');
 const cloudinary = require('cloudinary').v2;
+const Order = require('../model/order');
+
 
 // Add Category
 exports.addCategory = async (req, res) => {
@@ -102,12 +104,50 @@ exports.deletCategory = async (req, res) => {
 };
 
 // Add Review
+// exports.addReview = async (req, res) => {
+//     try {
+//         const userId = req.userId;
+//         const reviewData = req.body;
+//         const productId = req.params.id;
+
+//         const product = await Product.findById(productId);
+//         const user = await User.findById(userId);
+
+//         if (!product) {
+//             return res.status(404).json({ success: false, message: "Product not found" });
+//         }
+
+//         const review = {
+//             ...reviewData,
+//             username: user.username
+//         };
+
+//         product.reviews.push(review);
+//         await product.save();
+
+//         const validReviews = product.reviews.filter(review => review.rating !== undefined);
+//         let overallRating = 0;
+//         if (validReviews.length > 0) {
+//             const totalRating = validReviews.reduce((acc, review) => acc + review.rating, 0);
+//             overallRating = totalRating / validReviews.length;
+//         }
+
+//         product.rating = overallRating;
+//         await product.save();
+
+//         res.status(200).json({ success: true, message: "Review added successfully", product });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ success: false, message: "Internal server error" });
+//     }
+// };
 exports.addReview = async (req, res) => {
     try {
         const userId = req.userId;
         const reviewData = req.body;
         const productId = req.params.id;
 
+        // Find product and user
         const product = await Product.findById(productId);
         const user = await User.findById(userId);
 
@@ -115,14 +155,29 @@ exports.addReview = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
+        // Check if user has purchased the product (assuming you have an Order model)
+        const hasPurchased = await Order.findOne({ user: userId, 'items.product': productId });
+        if (!hasPurchased) {
+            return res.status(400).json({ success: false, message: "You can only review a product you have purchased." });
+        }
+
+        // Check if the user has already reviewed the product
+        const alreadyReviewed = product.reviews.find(review => review.userId.toString() === userId);
+        if (alreadyReviewed) {
+            return res.status(400).json({ success: false, message: "You can only add one review per product." });
+        }
+
+        // Add the new review
         const review = {
             ...reviewData,
+            userId: userId,
             username: user.username
         };
 
         product.reviews.push(review);
         await product.save();
 
+        // Recalculate the overall rating
         const validReviews = product.reviews.filter(review => review.rating !== undefined);
         let overallRating = 0;
         if (validReviews.length > 0) {
@@ -139,6 +194,7 @@ exports.addReview = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 // Get Review
 exports.getReview = async (req, res) => {
