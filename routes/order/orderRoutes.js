@@ -5,7 +5,7 @@ const {  isAdminOrSeller } = require("../../controllers/userContoller");
 
 
 const routes = express.Router();
-routes.route("/orders/:id").post(verifyToken,createOrder)
+routes.route("/orders").post(verifyToken,createOrder)
 routes.route("/all_orders").get(verifyToken,isAdminOrSeller,getAllOrders)
 routes.route("/seller/orders").get(verifyToken,getownOrders)
 routes.route("/orderlist/:id").get(verifyToken,getOrderByUserId)
