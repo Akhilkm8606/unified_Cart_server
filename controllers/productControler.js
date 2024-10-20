@@ -163,10 +163,10 @@ exports.addReview = async (req, res) => {
         }
 
         // Check if the user has already reviewed this product
-        // const alreadyReviewed = product.reviews.find(review => review.userId.toString() === userId.toString());
-        // if (alreadyReviewed) {
-        //     return res.status(400).json({ success: false, message: "You have already added a review for this product." });
-        // }
+        const alreadyReviewed = product.reviews.find(review => review.userId.toString() === userId.toString());
+        if (alreadyReviewed) {
+            return res.status(400).json({ success: false, message: "You have already added a review for this product." });
+        }
 
         // Add the new review with userId
         const review = {
