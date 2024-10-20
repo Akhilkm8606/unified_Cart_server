@@ -161,8 +161,8 @@ exports.addReview = async (req, res) => {
             return res.status(400).json({ success: false, message: "You can only review a product you have purchased." });
         }
 
-        // Check if the user has already reviewed the product
-        const alreadyReviewed = product.reviews.find(review => review.userId.toString() === userId);
+        // Check if the user has already reviewed the product (Add null check for userId)
+        const alreadyReviewed = product.reviews.find(review => review.userId && review.userId.toString() === userId);
         if (alreadyReviewed) {
             return res.status(400).json({ success: false, message: "You can only add one review per product." });
         }
@@ -194,6 +194,7 @@ exports.addReview = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 
 // Get Review
