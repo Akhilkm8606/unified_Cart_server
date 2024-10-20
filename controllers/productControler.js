@@ -143,7 +143,7 @@ exports.deletCategory = async (req, res) => {
 // };
 exports.addReview = async (req, res) => {
     try {
-        const userId = req.userId; // Get the user ID from the request (auth middleware)
+        const userId = req.userId; // Get user ID from the request (auth middleware)
         const reviewData = req.body; // Get review data from the request body
         const productId = req.params.id; // Get the product ID from request parameters
 
@@ -168,11 +168,11 @@ exports.addReview = async (req, res) => {
             return res.status(400).json({ success: false, message: "You have already added a review for this product." });
         }
 
-        // Add the new review with userId
+        // Add the new review with userId and other details
         const review = {
             ...reviewData,
-            userId:user.Id, // Make sure userId is included
-            username: user.username // Store the username for the review
+            userId: userId, // Include userId in the review
+            username: user.username // Include the username for display
         };
 
         // Add the review to the product's reviews array
@@ -197,6 +197,7 @@ exports.addReview = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 
 
