@@ -11,40 +11,68 @@ const instance = new Razorpay({
 // Create a new order
 exports.createOrder = async (req, res) => {
     try {
-        const { user, items, totalPrice, status, shippingAddress, paymentMethod,sellerId } = req.body;
-        const order = new Order({ user, items, totalPrice, status, shippingAddress, paymentMethod,sellerId });
-       
-        console.log(req.body);
-        
+        const userId = req.params.id; // Get the user ID from params or req.body if appropriate
 
-        if (order.paymentMethod.toLowerCase() === 'cash on delivery'){
-            await order.save();
+        // Step 1: Fetch the user's cart items
+        const userCart = await Cart.find({ userId }).populate("productId");
+        if (!userCart || userCart.length === 0) {
+            return res.status(404).json({ success: false, message: "Cart is empty." });
+        }
+
+        // Step 2: Prepare order details
+        const items = userCart.map(item => ({
+            productId: item.productId._id,
+            quantity: item.quantity,
+            // You can include additional fields from the product if needed
+        }));
+
+        // Calculate the total price from the cart items
+        const totalPrice = userCart.reduce((total, item) => total + (item.productId.price * item.quantity), 0);
+
+        // Step 3: Create the order
+        const { status, shippingAddress, paymentMethod, sellerId } = req.body; // Assuming these are passed in the request
+        const order = new Order({ user: userId, items, totalPrice, status, shippingAddress, paymentMethod, sellerId });
+
+        console.log(req.body);
+
+        // Step 4: Handle payment method
+        if (order.paymentMethod.toLowerCase() === 'cash on delivery') {
+            await order.save(); // Save the order to the database
+            // Clear the cart after successful order placement
+            await Cart.deleteMany({ userId }); // Optional: Clear the user's cart
             return res.status(201).json({ success: true, order, message: "Order placed successfully." });
         } else {
-            console.log("Payment Method is not Cash on Delivery");
+            // Razorpay payment process
+            console.log("Processing Razorpay payment...");
             const options = {
-                amount: order.totalPrice * 100, // Convert to smallest currency unit
+                amount: totalPrice * 100, // Convert total price to the smallest currency unit
                 currency: "INR",
                 receipt: order._id.toString() // Convert ObjectID to string for receipt
             };
 
+            // Create a Razorpay order
             instance.orders.create(options, async (err, razorpayOrder) => {
                 if (err) {
                     console.error("Razorpay Error:", err);
                     return res.status(500).json({ success: false, message: "Failed to create Razorpay order" });
                 }
-                // Razorpay order created successfully
+
+                // Razorpay order created successfully, assign paymentId to the order
                 order.paymentId = razorpayOrder.id;
-                await order.save();
-               
+                await order.save(); // Save the order with paymentId
+
+                // Clear the cart after successful order placement
+                await Cart.deleteMany({ userId }); // Optional: Clear the user's cart
+
                 res.status(201).json({ success: true, order, razorpayOrder });
-                        });
+            });
         }
     } catch (error) {
         console.error("Create Order Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
 
 exports. paymentVerification = async (req, res) => {
   
