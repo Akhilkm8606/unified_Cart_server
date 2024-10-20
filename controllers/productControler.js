@@ -171,7 +171,7 @@ exports.addReview = async (req, res) => {
         // Add the new review with userId
         const review = {
             ...reviewData,
-            userId: userId, // Make sure userId is included
+            userId:user._Id, // Make sure userId is included
             username: user.username // Store the username for the review
         };
 
