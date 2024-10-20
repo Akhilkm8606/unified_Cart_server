@@ -143,41 +143,43 @@ exports.deletCategory = async (req, res) => {
 // };
 exports.addReview = async (req, res) => {
     try {
-        const userId = req.userId;
-        const reviewData = req.body;
-        const productId = req.params.id;
+        const userId = req.userId; // User ID from the request (auth middleware)
+        const reviewData = req.body; // Review data from the request body
+        const productId = req.params.id; // Product ID from request parameters
 
-        // Find product and user
+        // Find the product and user by their IDs
         const product = await Product.findById(productId);
         const user = await User.findById(userId);
 
+        // Check if the product exists
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // Check if user has purchased the product (assuming you have an Order model)
+        // Check if the user has purchased the product
         const hasPurchased = await Order.findOne({ user: userId, 'items.product': productId });
         if (!hasPurchased) {
             return res.status(400).json({ success: false, message: "You can only review a product you have purchased." });
         }
 
-        // Check if the user has already reviewed the product (Add null check for userId)
+        // Check if the user has already reviewed this product
         const alreadyReviewed = product.reviews.find(review => review.userId && review.userId.toString() === userId);
         if (alreadyReviewed) {
-            return res.status(400).json({ success: false, message: "You can only add one review per product." });
+            return res.status(400).json({ success: false, message: "You have already added a review for this product." });
         }
 
-        // Add the new review
+        // Create the new review
         const review = {
             ...reviewData,
-            userId: userId,
-            username: user.username
+            userId: userId, // Ensure the review stores the user ID
+            username: user.username // Store the username for the review
         };
 
+        // Add the review to the product's reviews array
         product.reviews.push(review);
         await product.save();
 
-        // Recalculate the overall rating
+        // Recalculate the overall product rating
         const validReviews = product.reviews.filter(review => review.rating !== undefined);
         let overallRating = 0;
         if (validReviews.length > 0) {
@@ -185,12 +187,13 @@ exports.addReview = async (req, res) => {
             overallRating = totalRating / validReviews.length;
         }
 
-        product.rating = overallRating;
-        await product.save();
+        product.rating = overallRating; // Update the product rating
+        await product.save(); // Save the updated product details
 
+        // Send a success response
         res.status(200).json({ success: true, message: "Review added successfully", product });
     } catch (error) {
-        console.error(error);
+        console.error(error); // Log the error for debugging
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
