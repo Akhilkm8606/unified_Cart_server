@@ -143,9 +143,9 @@ exports.deletCategory = async (req, res) => {
 // };
 exports.addReview = async (req, res) => {
     try {
-        const userId = req.userId; // User ID from the request (auth middleware)
-        const reviewData = req.body; // Review data from the request body
-        const productId = req.params.id; // Product ID from request parameters
+        const userId = req.userId; // Get the user ID from the request (auth middleware)
+        const reviewData = req.body; // Get review data from the request body
+        const productId = req.params.id; // Get the product ID from request parameters
 
         // Find the product and user by their IDs
         const product = await Product.findById(productId);
@@ -156,22 +156,22 @@ exports.addReview = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // Check if the user has purchased the product
+        // Check if the user has purchased the product (assuming you have an Order model)
         const hasPurchased = await Order.findOne({ user: userId, 'items.product': productId });
         if (!hasPurchased) {
             return res.status(400).json({ success: false, message: "You can only review a product you have purchased." });
         }
 
         // Check if the user has already reviewed this product
-        const alreadyReviewed = product.reviews.find(review => review.userId && review.userId.toString() === userId);
+        const alreadyReviewed = product.reviews.find(review => review.userId.toString() === userId.toString());
         if (alreadyReviewed) {
             return res.status(400).json({ success: false, message: "You have already added a review for this product." });
         }
 
-        // Create the new review
+        // Add the new review with userId
         const review = {
             ...reviewData,
-            userId: userId, // Ensure the review stores the user ID
+            userId: userId, // Make sure userId is included
             username: user.username // Store the username for the review
         };
 
@@ -197,6 +197,7 @@ exports.addReview = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 
 
