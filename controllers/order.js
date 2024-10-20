@@ -2,6 +2,7 @@ const Order = require('../model/order');
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
 const Payment = require('../model/payment');
+const Cart = require('../model/cart');
 
 const instance = new Razorpay({
     key_id: 'rzp_test_UWrwYMcZFBkSYy',
